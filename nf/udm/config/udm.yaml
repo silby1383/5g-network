@@ -1,0 +1,50 @@
+# UDM (Unified Data Management) Configuration
+
+nf:
+  name: udm-1
+  instance_id: "00000000-0000-0000-0000-000000000003"
+  description: "Unified Data Management - Development Instance"
+
+sbi:
+  scheme: http
+  bind_address: 0.0.0.0
+  port: 8082
+  tls:
+    enabled: false
+    cert_file: /etc/udm/certs/udm.crt
+    key_file: /etc/udm/certs/udm.key
+
+# NRF Configuration
+nrf:
+  url: http://localhost:8080
+  enabled: true
+  heartbeat_interval: 30s
+
+# UDR Configuration (for subscriber data access)
+udr:
+  url: http://localhost:8081
+  timeout: 10s
+
+# PLMN Configuration
+plmn:
+  mcc: "001"
+  mnc: "01"
+
+# Authentication Configuration
+auth:
+  # Algorithm: milenage, tuak
+  algorithm: milenage
+  # K length: 128 or 256 bits
+  key_length: 128
+
+observability:
+  metrics:
+    enabled: true
+    port: 9092
+  tracing:
+    enabled: false
+    exporter: otlp
+    endpoint: otel-collector.observability.svc.cluster.local:4317
+  logging:
+    level: info
+    format: json

@@ -127,9 +127,9 @@ func (r *ClickHouseRepository) GetSubscriber(ctx context.Context, supi string) (
 	`
 
 	var data SubscriberData
-	var nssaiArray []string  // ClickHouse Array(String)
+	var nssaiArray []string // ClickHouse Array(String)
 	var dnnJSON string
-	var roamingAreas []string  // ClickHouse Array(String)
+	var roamingAreas []string // ClickHouse Array(String)
 
 	row := r.client.QueryRow(ctx, query, supi)
 	err := row.Scan(
