@@ -1,0 +1,36 @@
+# NRF (Network Repository Function) Configuration
+
+sbi:
+  scheme: http
+  bind_address: 0.0.0.0
+  port: 8080
+  tls:
+    enabled: false
+    cert_file: /etc/nrf/certs/nrf.crt
+    key_file: /etc/nrf/certs/nrf.key
+
+nf:
+  name: nrf-1
+  instance_id: "00000000-0000-0000-0000-000000000001"
+  description: "Network Repository Function - Development Instance"
+  heartbeat:
+    enabled: true
+    interval: 30   # seconds
+    timeout: 60    # seconds
+
+database:
+  type: memory  # memory, redis, or clickhouse
+  url: ""
+  retention: 7   # days to retain NF profiles
+
+observability:
+  metrics:
+    enabled: true
+    port: 9090
+  tracing:
+    enabled: false
+    exporter: otlp
+    endpoint: otel-collector.observability.svc.cluster.local:4317
+  logging:
+    level: info
+    format: json

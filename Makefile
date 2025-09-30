@@ -305,3 +305,30 @@ docs: ## Generate documentation
 
 docs-stop: ## Stop documentation server
 	@pkill -f "godoc -http=:6060" || true
+
+# NRF build target
+build-nrf:
+	@echo "Building NRF..."
+	@mkdir -p bin
+	go build -o bin/nrf -ldflags "-X main.Version=dev -X main.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" ./nf/nrf/cmd
+
+# NRF test target  
+test-nrf:
+	@echo "Testing NRF..."
+	go test -v -race -coverprofile=coverage.out ./nf/nrf/...
+	
+
+
+
+# UDR build target
+build-udr:
+	@echo "Building UDR..."
+	@mkdir -p bin
+	go build -o bin/udr -ldflags "-X main.Version=dev -X main.BuildTime=$(date -u +%Y-%m-%dT%H:%M:%SZ)" ./nf/udr/cmd
+
+# UDR test target
+test-udr:
+	@echo "Testing UDR..."
+	go test -v -race -coverprofile=coverage-udr.out ./nf/udr/...
+
+

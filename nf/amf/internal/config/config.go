@@ -2,10 +2,10 @@ package config
 
 // Config holds the AMF configuration
 type Config struct {
-	SBI            SBIConfig
-	NGAP           NGAPConfig
-	GUAMI          GUAMI
-	Observability  ObservabilityConfig
+	SBI           SBIConfig
+	NGAP          NGAPConfig
+	GUAMI         GUAMI
+	Observability ObservabilityConfig
 }
 
 // SBIConfig holds Service Based Interface configuration

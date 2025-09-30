@@ -1,0 +1,44 @@
+# UDR (Unified Data Repository) Configuration
+
+nf:
+  name: udr-1
+  instance_id: "00000000-0000-0000-0000-000000000002"
+  description: "Unified Data Repository - Development Instance"
+
+sbi:
+  scheme: http
+  bind_address: 0.0.0.0
+  port: 8081
+  tls:
+    enabled: false
+    cert_file: /etc/udr/certs/udr.crt
+    key_file: /etc/udr/certs/udr.key
+
+clickhouse:
+  addresses:
+    - localhost:9000
+  database: udr
+  username: admin
+  password: admin
+  max_open_conns: 10
+  max_idle_conns: 5
+  timeout: 10s
+  tls:
+    enabled: false
+    insecure_skip_verify: false
+
+nrf:
+  url: http://localhost:8080
+  enabled: true
+
+observability:
+  metrics:
+    enabled: true
+    port: 9091
+  tracing:
+    enabled: false
+    exporter: otlp
+    endpoint: otel-collector.observability.svc.cluster.local:4317
+  logging:
+    level: info
+    format: json
