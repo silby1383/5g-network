@@ -32,14 +32,14 @@ func NewNRFClient(baseURL string, logger *zap.Logger) *NRFClient {
 
 // NFProfile represents an NF profile for registration
 type NFProfile struct {
-	NFInstanceID string   `json:"nfInstanceId"`
-	NFType       string   `json:"nfType"`
-	NFStatus     string   `json:"nfStatus"`
-	PLMNID       PLMNID   `json:"plmnId"`
-	IPv4Addresses []string `json:"ipv4Addresses,omitempty"`
-	Capacity     int      `json:"capacity,omitempty"`
-	Priority     int      `json:"priority,omitempty"`
-	AUSFInfo     *AUSFInfo `json:"ausfInfo,omitempty"`
+	NFInstanceID  string    `json:"nfInstanceId"`
+	NFType        string    `json:"nfType"`
+	NFStatus      string    `json:"nfStatus"`
+	PLMNID        PLMNID    `json:"plmnId"`
+	IPv4Addresses []string  `json:"ipv4Addresses,omitempty"`
+	Capacity      int       `json:"capacity,omitempty"`
+	Priority      int       `json:"priority,omitempty"`
+	AUSFInfo      *AUSFInfo `json:"ausfInfo,omitempty"`
 }
 
 // PLMNID represents PLMN identifier
@@ -50,9 +50,9 @@ type PLMNID struct {
 
 // AUSFInfo contains AUSF-specific information
 type AUSFInfo struct {
-	GroupID               string   `json:"groupId,omitempty"`
-	SUPIRanges            []string `json:"supiRanges,omitempty"`
-	RoutingIndicators     []string `json:"routingIndicators,omitempty"`
+	GroupID           string   `json:"groupId,omitempty"`
+	SUPIRanges        []string `json:"supiRanges,omitempty"`
+	RoutingIndicators []string `json:"routingIndicators,omitempty"`
 }
 
 // Register registers AUSF with NRF

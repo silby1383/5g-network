@@ -71,8 +71,31 @@ func (s *AUSFServer) handleGetStats(w http.ResponseWriter, r *http.Request) {
 	stats := s.authService.GetStats()
 	
 	s.respondJSON(w, http.StatusOK, map[string]interface{}{
-		"service": "AUSF",
-		"version": "1.0.0",
+		"service":    "AUSF",
+		"version":    "1.0.0",
 		"auth_stats": stats,
+	})
+}
+
+// handleGetAuthContext handles GET request for auth context (TEST ONLY!)
+// This is for testing without a real UE - NOT FOR PRODUCTION
+func (s *AUSFServer) handleGetAuthContext(w http.ResponseWriter, r *http.Request) {
+	authCtxID := chi.URLParam(r, "authCtxId")
+
+	authCtx, err := s.authService.GetAuthContext(authCtxID)
+	if err != nil {
+		s.respondError(w, http.StatusNotFound, "authentication context not found", err)
+		return
+	}
+
+	// Return context including HXRES* for testing
+	s.respondJSON(w, http.StatusOK, map[string]interface{}{
+		"authCtxId":          authCtx.AuthCtxID,
+		"supi":               authCtx.SUPI,
+		"authType":           authCtx.AuthType,
+		"rand":               authCtx.RAND,
+		"autn":               authCtx.AUTN,
+		"hxres":              authCtx.HXRES, // For testing!
+		"servingNetworkName": authCtx.ServingNetworkName,
 	})
 }

@@ -16,10 +16,10 @@ import (
 
 // AUSFServer represents the AUSF HTTP server
 type AUSFServer struct {
-	config  *config.Config
-	router  *chi.Mux
-	server  *http.Server
-	logger  *zap.Logger
+	config *config.Config
+	router *chi.Mux
+	server *http.Server
+	logger *zap.Logger
 
 	// Services
 	authService *service.AuthenticationService
@@ -64,10 +64,10 @@ func (s *AUSFServer) setupRoutes() {
 	s.router.Route("/nausf-auth/v1", func(r chi.Router) {
 		// UE authentication initiation
 		r.Post("/ue-authentications", s.handleUEAuthenticationRequest)
-		
+
 		// 5G-AKA confirmation
 		r.Put("/ue-authentications/{authCtxId}/5g-aka-confirmation", s.handleConfirm5gAkaAuth)
-		
+
 		// EAP session (future)
 		// r.Post("/ue-authentications/{authCtxId}/eap-session", s.handleEAPSession)
 	})
@@ -75,6 +75,7 @@ func (s *AUSFServer) setupRoutes() {
 	// Admin endpoints
 	s.router.Route("/admin", func(r chi.Router) {
 		r.Get("/stats", s.handleGetStats)
+		r.Get("/test/auth-context/{authCtxId}", s.handleGetAuthContext) // Test only!
 	})
 }
 
@@ -102,11 +103,11 @@ func (s *AUSFServer) Start() error {
 // Stop gracefully stops the HTTP server
 func (s *AUSFServer) Stop(ctx context.Context) error {
 	s.logger.Info("Stopping AUSF HTTP server")
-	
+
 	if s.server != nil {
 		return s.server.Shutdown(ctx)
 	}
-	
+
 	return nil
 }
 
@@ -151,7 +152,7 @@ func (s *AUSFServer) respondError(w http.ResponseWriter, status int, message str
 		"status": status,
 		"title":  message,
 	}
-	
+
 	if err != nil {
 		response["detail"] = err.Error()
 	}
@@ -176,7 +177,7 @@ func (s *AUSFServer) handleReady(w http.ResponseWriter, r *http.Request) {
 
 func (s *AUSFServer) handleStatus(w http.ResponseWriter, r *http.Request) {
 	stats := s.authService.GetStats()
-	
+
 	s.respondJSON(w, http.StatusOK, map[string]interface{}{
 		"service": "AUSF",
 		"version": "1.0.0",

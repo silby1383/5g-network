@@ -47,8 +47,8 @@ type AuthenticationContext struct {
 
 // UEAuthenticationRequest represents authentication initiation request from AMF
 type UEAuthenticationRequest struct {
-	SUPI               string `json:"supiOrSuci"`
-	ServingNetworkName string `json:"servingNetworkName"`
+	SUPI                  string `json:"supiOrSuci"`
+	ServingNetworkName    string `json:"servingNetworkName"`
 	ResynchronizationInfo *struct {
 		RAND string `json:"rand"`
 		AUTS string `json:"auts"`
@@ -57,15 +57,16 @@ type UEAuthenticationRequest struct {
 
 // UEAuthenticationResponse represents authentication response to AMF
 type UEAuthenticationResponse struct {
-	AuthType            string                  `json:"authType"`
-	Var5gAuthData       *Var5gAuthData         `json:"_5gAuthData,omitempty"`
-	Links               map[string]interface{} `json:"_links"`
+	AuthType      string                 `json:"authType"`
+	AuthCtxID     string                 `json:"authCtxId,omitempty"` // Authentication context ID
+	Var5gAuthData *Var5gAuthData         `json:"_5gAuthData,omitempty"`
+	Links         map[string]interface{} `json:"_links"`
 }
 
 // Var5gAuthData represents 5G authentication data
 type Var5gAuthData struct {
-	RAND  string `json:"rand"`
-	AUTN  string `json:"autn"`
+	RAND string `json:"rand"`
+	AUTN string `json:"autn"`
 }
 
 // ConfirmationData represents authentication confirmation from AMF
@@ -75,9 +76,9 @@ type ConfirmationData struct {
 
 // ConfirmationDataResponse represents authentication confirmation response
 type ConfirmationDataResponse struct {
-	AuthResult string  `json:"authResult"` // "AUTHENTICATION_SUCCESS" or "AUTHENTICATION_FAILURE"
-	SUPI       string  `json:"supi,omitempty"`
-	KSEAF      string  `json:"kseaf,omitempty"`
+	AuthResult string `json:"authResult"` // "AUTHENTICATION_SUCCESS" or "AUTHENTICATION_FAILURE"
+	SUPI       string `json:"supi,omitempty"`
+	KSEAF      string `json:"kseaf,omitempty"`
 }
 
 // UEAuthenticationCtx initiates authentication for a UE
@@ -89,8 +90,8 @@ func (s *AuthenticationService) UEAuthenticationCtx(ctx context.Context, req *UE
 
 	// Request authentication vector from UDM
 	authInfo := &client.AuthenticationInfo{
-		SUPI:               req.SUPI,
-		ServingNetworkName: req.ServingNetworkName,
+		SUPI:                  req.SUPI,
+		ServingNetworkName:    req.ServingNetworkName,
 		ResynchronizationInfo: req.ResynchronizationInfo,
 	}
 
@@ -138,7 +139,8 @@ func (s *AuthenticationService) UEAuthenticationCtx(ctx context.Context, req *UE
 
 	// Build response
 	response := &UEAuthenticationResponse{
-		AuthType: authResult.AuthType,
+		AuthType:  authResult.AuthType,
+		AuthCtxID: authCtxID, // Include for convenience
 		Var5gAuthData: &Var5gAuthData{
 			RAND: authResult.AuthenticationVector.RAND,
 			AUTN: authResult.AuthenticationVector.AUTN,
@@ -202,7 +204,7 @@ func (s *AuthenticationService) Confirm5gAkaAuth(ctx context.Context, authCtxID 
 			"authType":           authCtx.AuthType,
 			"servingNetworkName": authCtx.ServingNetworkName,
 		}
-		
+
 		if err := s.udmClient.ConfirmAuth(ctx, authCtx.SUPI, authEvent); err != nil {
 			s.logger.Error("Failed to confirm auth with UDM", zap.Error(err))
 			// Continue anyway - authentication was successful
@@ -261,13 +263,13 @@ func (s *AuthenticationService) generateAuthCtxID() string {
 // Simplified implementation - in production use 3GPP KDF
 func (s *AuthenticationService) deriveKSEAF(kausfHex, servingNetworkName string) string {
 	kausf, _ := hex.DecodeString(kausfHex)
-	
+
 	// Simple KDF using SHA-256
 	h := sha256.New()
 	h.Write(kausf)
 	h.Write([]byte(servingNetworkName))
 	h.Write([]byte("KSEAF"))
-	
+
 	kseaf := h.Sum(nil)
 	return hex.EncodeToString(kseaf)
 }

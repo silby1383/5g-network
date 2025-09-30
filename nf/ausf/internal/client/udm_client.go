@@ -32,8 +32,8 @@ func NewUDMClient(baseURL string, timeout time.Duration, logger *zap.Logger) *UD
 
 // AuthenticationInfo represents authentication information request to UDM
 type AuthenticationInfo struct {
-	SUPI               string `json:"supi"`
-	ServingNetworkName string `json:"servingNetworkName"`
+	SUPI                  string `json:"supi"`
+	ServingNetworkName    string `json:"servingNetworkName"`
 	ResynchronizationInfo *struct {
 		RAND string `json:"rand"`
 		AUTS string `json:"auts"`
@@ -50,13 +50,13 @@ type AuthenticationVector struct {
 
 // AuthenticationInfoResult represents the authentication response from UDM
 type AuthenticationInfoResult struct {
-	AuthType             string                    `json:"authType"` // "5G_AKA" or "EAP_AKA_PRIME"
+	AuthType             string                `json:"authType"` // "5G_AKA" or "EAP_AKA_PRIME"
 	AuthenticationVector *AuthenticationVector `json:"authenticationVector,omitempty"`
 }
 
 // GenerateAuthData requests UDM to generate authentication data
 func (c *UDMClient) GenerateAuthData(ctx context.Context, authInfo *AuthenticationInfo) (*AuthenticationInfoResult, error) {
-	url := fmt.Sprintf("%s/nudm-ueau/v1/supi/%s/security-information/generate-auth-data", 
+	url := fmt.Sprintf("%s/nudm-ueau/v1/supi/%s/security-information/generate-auth-data",
 		c.baseURL, authInfo.SUPI)
 
 	body, err := json.Marshal(authInfo)

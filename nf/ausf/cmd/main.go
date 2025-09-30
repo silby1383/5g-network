@@ -61,7 +61,7 @@ func main() {
 	go func() {
 		ticker := time.NewTicker(1 * time.Minute)
 		defer ticker.Stop()
-		
+
 		for range ticker.C {
 			authService.CleanupExpiredContexts()
 		}
@@ -77,7 +77,7 @@ func main() {
 	// Register with NRF if enabled
 	if cfg.NRF.Enabled {
 		nrfClient := client.NewNRFClient(cfg.NRF.URL, logger)
-		
+
 		profile := &client.NFProfile{
 			NFInstanceID: cfg.NF.InstanceID,
 			NFType:       "AUSF",
@@ -98,12 +98,12 @@ func main() {
 			logger.Error("Failed to register with NRF", zap.Error(err))
 		} else {
 			logger.Info("Registered with NRF")
-			
+
 			// Start heartbeat goroutine
 			go func() {
 				ticker := time.NewTicker(cfg.NRF.HeartbeatInterval)
 				defer ticker.Stop()
-				
+
 				for {
 					select {
 					case <-ticker.C:
@@ -115,12 +115,12 @@ func main() {
 					}
 				}
 			}()
-			
+
 			// Deregister on shutdown
 			defer func() {
 				deregCtx, deregCancel := context.WithTimeout(context.Background(), 5*time.Second)
 				defer deregCancel()
-				
+
 				if err := nrfClient.Deregister(deregCtx, cfg.NF.InstanceID); err != nil {
 					logger.Error("Failed to deregister from NRF", zap.Error(err))
 				} else {
