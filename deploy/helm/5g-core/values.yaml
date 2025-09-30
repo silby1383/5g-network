@@ -1,0 +1,539 @@
+# 5G Core Network - Helm Chart Values
+# Production-ready configuration with simulated UPF and RAN
+
+global:
+  # Container registry
+  registry: docker.io/5gnetwork
+  
+  # Image pull policy
+  imagePullPolicy: IfNotPresent
+  
+  # PLMN configuration
+  plmn:
+    mcc: "001"
+    mnc: "01"
+  
+  # Network configuration
+  network:
+    sbi:
+      scheme: https  # https for production, http for dev
+      port: 8080
+    
+  # Observability
+  observability:
+    # eBPF-based tracing
+    ebpfTracing:
+      enabled: true
+      otelCollectorEndpoint: otel-collector.observability.svc.cluster.local:4317
+    
+    # Metrics
+    metrics:
+      enabled: true
+      victoriaMetricsEndpoint: victoria-metrics-vminsert.observability.svc.cluster.local:8480
+    
+    # Logging
+    logging:
+      level: info
+      format: json
+
+# Network Repository Function (NRF)
+nrf:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: 5gnetwork/nrf
+    tag: latest
+  
+  service:
+    type: ClusterIP
+    port: 8080
+  
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+# Access and Mobility Management Function (AMF)
+amf:
+  enabled: true
+  replicaCount: 3
+  
+  image:
+    repository: 5gnetwork/amf
+    tag: latest
+  
+  service:
+    sbi:
+      type: ClusterIP
+      port: 8080
+    ngap:
+      type: LoadBalancer  # For external gNodeB connection
+      port: 38412
+      protocol: SCTP
+  
+  config:
+    # gUAMI (Globally Unique AMF ID)
+    guami:
+      plmnId:
+        mcc: "001"
+        mnc: "01"
+      amfRegionId: "01"
+      amfSetId: "001"
+      amfPointer: "01"
+    
+    # TAC list
+    tacList:
+      - 1
+      - 2
+      - 3
+    
+    # Security
+    security:
+      integrityAlgorithms:
+        - NIA1
+        - NIA2
+        - NIA3
+      encryptionAlgorithms:
+        - NEA1
+        - NEA2
+        - NEA3
+  
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+    limits:
+      cpu: 4000m
+      memory: 4Gi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+
+# Session Management Function (SMF)
+smf:
+  enabled: true
+  replicaCount: 3
+  
+  image:
+    repository: 5gnetwork/smf
+    tag: latest
+  
+  service:
+    type: ClusterIP
+    port: 8080
+  
+  config:
+    # UE IP pools per DNN
+    ipPools:
+      - dnn: internet
+        cidr: 10.60.0.0/16
+      - dnn: ims
+        cidr: 10.61.0.0/16
+      - dnn: enterprise
+        cidr: 10.62.0.0/16
+    
+    # DNN configurations
+    dnnList:
+      - dnn: internet
+        dns:
+          ipv4: 8.8.8.8
+          ipv6: "2001:4860:4860::8888"
+      - dnn: ims
+        dns:
+          ipv4: 10.10.10.1
+  
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 1Gi
+    limits:
+      cpu: 4000m
+      memory: 4Gi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 15
+    targetCPUUtilizationPercentage: 70
+
+# User Plane Function (UPF) - Simulated Data Plane
+upf:
+  enabled: true
+  replicaCount: 3
+  
+  image:
+    repository: 5gnetwork/upf
+    tag: latest
+  
+  service:
+    n3:
+      type: NodePort  # For GTP-U from RAN
+      port: 2152
+      protocol: UDP
+    n4:
+      type: ClusterIP
+      port: 8805  # PFCP
+      protocol: UDP
+    n6:
+      type: ClusterIP
+      port: 2153  # GTP-U to DN
+      protocol: UDP
+  
+  config:
+    # Data plane type
+    dataPlane:
+      type: simulated  # "simulated", "ebpf", "xdp"
+      workers: 8
+      bufferSize: 4096
+      queueDepth: 10000
+    
+    # Interfaces
+    interfaces:
+      n3:
+        address: 0.0.0.0
+      n6:
+        address: 0.0.0.0
+      n9:
+        address: 0.0.0.0
+  
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 2Gi
+    limits:
+      cpu: 8000m
+      memory: 8Gi
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 60
+
+# Authentication Server Function (AUSF)
+ausf:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: 5gnetwork/ausf
+    tag: latest
+  
+  service:
+    type: ClusterIP
+    port: 8080
+  
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+# Unified Data Management (UDM)
+udm:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: 5gnetwork/udm
+    tag: latest
+  
+  service:
+    type: ClusterIP
+    port: 8080
+  
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+# Unified Data Repository (UDR)
+udr:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: 5gnetwork/udr
+    tag: latest
+  
+  service:
+    type: ClusterIP
+    port: 8080
+  
+  config:
+    clickhouse:
+      endpoints:
+        - clickhouse-0.clickhouse.databases.svc.cluster.local:9000
+        - clickhouse-1.clickhouse.databases.svc.cluster.local:9000
+        - clickhouse-2.clickhouse.databases.svc.cluster.local:9000
+      database: 5gcore
+      username: default
+      # password in secret
+  
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+# Policy Control Function (PCF)
+pcf:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: 5gnetwork/pcf
+    tag: latest
+  
+  service:
+    type: ClusterIP
+    port: 8080
+  
+  config:
+    # Default QoS
+    defaultQos:
+      fiveQI: 9
+      priority: 8
+    
+    # Policy rules
+    policyRules:
+      - ruleId: default-internet
+        dnn: internet
+        qos:
+          fiveQI: 9
+          priority: 8
+          mbrUplink: 100000000    # 100 Mbps
+          mbrDownlink: 200000000  # 200 Mbps
+  
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+# Network Slice Selection Function (NSSF)
+nssf:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: 5gnetwork/nssf
+    tag: latest
+  
+  service:
+    type: ClusterIP
+    port: 8080
+  
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+# Network Exposure Function (NEF)
+nef:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: 5gnetwork/nef
+    tag: latest
+  
+  service:
+    type: LoadBalancer  # External exposure
+    port: 8080
+  
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+# Network Data Analytics Function (NWDAF)
+nwdaf:
+  enabled: true
+  replicaCount: 1
+  
+  image:
+    repository: 5gnetwork/nwdaf
+    tag: latest
+  
+  service:
+    type: ClusterIP
+    port: 8080
+  
+  config:
+    victoriaMetrics:
+      endpoint: victoria-metrics-vmselect.observability.svc.cluster.local:8481
+    
+    mlModels:
+      - name: traffic-prediction
+        enabled: true
+        interval: 1h
+      - name: anomaly-detection
+        enabled: true
+        interval: 5m
+  
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+    limits:
+      cpu: 4000m
+      memory: 8Gi
+
+# gNodeB (CU/DU/RU with simulated radio)
+gnb:
+  enabled: true
+  
+  # Central Unit (CU)
+  cu:
+    replicaCount: 2
+    
+    image:
+      repository: 5gnetwork/gnb-cu
+      tag: latest
+    
+    service:
+      n2:
+        type: ClusterIP
+        port: 38412
+        protocol: SCTP
+      n3:
+        type: ClusterIP
+        port: 2152
+        protocol: UDP
+      f1:
+        type: ClusterIP
+        port: 38472
+        protocol: SCTP
+    
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 1Gi
+      limits:
+        cpu: 4000m
+        memory: 4Gi
+  
+  # Distributed Unit (DU)
+  du:
+    replicaCount: 3
+    
+    image:
+      repository: 5gnetwork/gnb-du
+      tag: latest
+    
+    config:
+      cells:
+        - cellId: "001"
+          pci: 1
+          bandwidth: 100  # MHz
+          maxUEs: 100
+    
+    resources:
+      requests:
+        cpu: 1000m
+        memory: 1Gi
+      limits:
+        cpu: 4000m
+        memory: 4Gi
+  
+  # Radio Unit (RU) - Simulated
+  ru:
+    replicaCount: 5
+    
+    image:
+      repository: 5gnetwork/gnb-ru-simulator
+      tag: latest
+    
+    config:
+      cells:
+        - cellId: "001"
+          centerFreq: 3.5e9  # 3.5 GHz
+          bandwidth: 100e6   # 100 MHz
+          txPower: 43        # dBm
+          location:
+            lat: 37.7749
+            lon: -122.4194
+      
+      # Channel model
+      channel:
+        propagationModel: URBAN  # FREE_SPACE, URBAN, INDOOR
+        fading: RAYLEIGH         # RAYLEIGH, RICIAN, NONE
+        noiseFloor: -104         # dBm
+    
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+
+# eBPF-based Observability
+ebpfTracer:
+  enabled: true
+  
+  image:
+    repository: 5gnetwork/ebpf-tracer
+    tag: latest
+  
+  # Deploy as DaemonSet to trace all nodes
+  daemonSet:
+    enabled: true
+  
+  config:
+    # Target network functions to trace
+    targets:
+      - nf: amf
+        functions:
+          - HandleHTTPRequest
+          - ProcessRegistration
+      - nf: smf
+        functions:
+          - HandleHTTPRequest
+          - CreatePDUSession
+      - nf: upf
+        functions:
+          - ProcessPacket
+  
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+
+# Service Monitor for Prometheus/Victoria Metrics
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  scrapeTimeout: 10s

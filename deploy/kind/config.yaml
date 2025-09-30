@@ -1,0 +1,82 @@
+# kind cluster configuration for 5G Network development
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: 5g-network
+
+# Networking configuration
+networking:
+  # Disable default CNI to allow custom networking if needed
+  disableDefaultCNI: false
+  # Pod subnet
+  podSubnet: "10.244.0.0/16"
+  # Service subnet
+  serviceSubnet: "10.96.0.0/12"
+
+# Nodes configuration
+nodes:
+  # Control plane node
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "node-role.kubernetes.io/control-plane="
+    extraPortMappings:
+      # Expose Grafana NodePort
+      - containerPort: 30080
+        hostPort: 30080
+        protocol: TCP
+      # Expose AMF NGAP (SCTP)
+      - containerPort: 38412
+        hostPort: 38412
+        protocol: TCP
+      # Expose UPF N3 (GTP-U)
+      - containerPort: 2152
+        hostPort: 2152
+        protocol: UDP
+    extraMounts:
+      # Mount for eBPF programs (kernel headers)
+      - hostPath: /sys/kernel/debug
+        containerPath: /sys/kernel/debug
+      - hostPath: /sys/fs/bpf
+        containerPath: /sys/fs/bpf
+
+  # Worker nodes
+  - role: worker
+    kubeadmConfigPatches:
+      - |
+        kind: JoinConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "node-role.kubernetes.io/worker="
+    extraMounts:
+      - hostPath: /sys/kernel/debug
+        containerPath: /sys/kernel/debug
+      - hostPath: /sys/fs/bpf
+        containerPath: /sys/fs/bpf
+
+  - role: worker
+    kubeadmConfigPatches:
+      - |
+        kind: JoinConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "node-role.kubernetes.io/worker="
+    extraMounts:
+      - hostPath: /sys/kernel/debug
+        containerPath: /sys/kernel/debug
+      - hostPath: /sys/fs/bpf
+        containerPath: /sys/fs/bpf
+
+# Feature gates
+featureGates:
+  # Enable necessary features
+  "EphemeralContainers": true
+  "CSINodeInfo": true
+
+# Runtime configuration
+containerdConfigPatches:
+  - |-
+    [plugins."io.containerd.grpc.v1.cri".registry.mirrors."localhost:5000"]
+      endpoint = ["http://localhost:5000"]

@@ -1,0 +1,2 @@
+# Exclude C files from Go builds
+*.c linguist-vendored

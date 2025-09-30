@@ -1,0 +1,40 @@
+{
+  "name": "5g-network",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloud-native 5G Core Network",
+  "workspaces": [
+    "webui/frontend"
+  ],
+  "scripts": {
+    "dev:webui": "cd webui/frontend && npm run dev",
+    "build:webui": "cd webui/frontend && npm run build",
+    "start:webui": "cd webui/frontend && npm start",
+    "lint:webui": "cd webui/frontend && npm run lint",
+    "format:webui": "cd webui/frontend && npm run format",
+    "install:webui": "cd webui/frontend && npm install",
+    "test:webui": "cd webui/frontend && npm test",
+    "clean": "rm -rf webui/frontend/node_modules webui/frontend/.next",
+    "clean:all": "npm run clean && rm -rf node_modules"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/5g-network.git"
+  },
+  "keywords": [
+    "5g",
+    "core-network",
+    "cloud-native",
+    "kubernetes",
+    "ebpf",
+    "opentelemetry"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "devDependencies": {},
+  "dependencies": {}
+}

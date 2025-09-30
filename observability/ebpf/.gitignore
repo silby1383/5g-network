@@ -1,0 +1,9 @@
+# eBPF compiled objects
+*.o
+*.d
+
+# Generated vmlinux
+vmlinux_*.h
+
+# Test binaries
+test_*
