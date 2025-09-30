@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -194,8 +195,9 @@ func (s *UDRServer) respondJSON(w http.ResponseWriter, status int, data interfac
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 
-	// In production, use proper JSON marshaling
-	fmt.Fprintf(w, "%+v", data)
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		s.logger.Error("Failed to encode JSON response", zap.Error(err))
+	}
 }
 
 // respondError writes an error response

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -126,15 +127,17 @@ func (r *ClickHouseRepository) GetSubscriber(ctx context.Context, supi string) (
 	`
 
 	var data SubscriberData
-	var nssaiJSON, dnnJSON string
+	var nssaiArray []string  // ClickHouse Array(String)
+	var dnnJSON string
+	var roamingAreas []string  // ClickHouse Array(String)
 
 	row := r.client.QueryRow(ctx, query, supi)
 	err := row.Scan(
 		&data.SUPI, &data.SUPIType, &data.PLMNIDmcc, &data.PLMNIDmnc,
 		&data.SubscriberStatus, &data.MSISDN,
 		&data.SubscribedUeAmbrUplink, &data.SubscribedUeAmbrDownlink,
-		&nssaiJSON, &dnnJSON,
-		&data.RoamingAllowed, &data.RoamingAreas,
+		&nssaiArray, &dnnJSON,
+		&data.RoamingAllowed, &roamingAreas,
 		&data.OPCKey, &data.AuthenticationMethod,
 		&data.CreatedAt, &data.UpdatedAt,
 	)
@@ -143,13 +146,28 @@ func (r *ClickHouseRepository) GetSubscriber(ctx context.Context, supi string) (
 		return nil, fmt.Errorf("subscriber not found: %w", err)
 	}
 
-	// Unmarshal JSON fields
-	if err := data.UnmarshalNSSAI(nssaiJSON); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal NSSAI: %w", err)
+	// Set roaming areas
+	data.RoamingAreas = roamingAreas
+
+	// Unmarshal NSSAI array
+	if len(nssaiArray) > 0 {
+		data.NSSAI = make([]SNSSAI, 0, len(nssaiArray))
+		for _, nssaiJSON := range nssaiArray {
+			var snssai SNSSAI
+			if err := json.Unmarshal([]byte(nssaiJSON), &snssai); err != nil {
+				// If it's not JSON, skip or handle differently
+				r.logger.Warn("Failed to unmarshal NSSAI item", zap.String("nssai", nssaiJSON), zap.Error(err))
+				continue
+			}
+			data.NSSAI = append(data.NSSAI, snssai)
+		}
 	}
 
-	if err := data.UnmarshalDNNConfigurations(dnnJSON); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal DNN configurations: %w", err)
+	// Unmarshal DNN configurations
+	if dnnJSON != "" {
+		if err := data.UnmarshalDNNConfigurations(dnnJSON); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal DNN configurations: %w", err)
+		}
 	}
 
 	return &data, nil

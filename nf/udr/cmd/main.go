@@ -176,15 +176,15 @@ func initializeSchema(client *clickhouse.Client, logger *zap.Logger) error {
 	// Split schema into individual statements
 	// ClickHouse Go client doesn't support multi-statement execution
 	statements := splitSQLStatements(string(schemaSQL))
-	
+
 	logger.Info("Executing schema statements", zap.Int("total_statements", len(statements)))
-	
+
 	for i, stmt := range statements {
 		stmt = strings.TrimSpace(stmt)
 		if stmt == "" || strings.HasPrefix(stmt, "--") {
 			continue
 		}
-		
+
 		logger.Debug("Executing statement", zap.Int("statement_num", i+1))
 		if err := client.Exec(ctx, stmt); err != nil {
 			logger.Error("Failed to execute statement",
@@ -195,7 +195,7 @@ func initializeSchema(client *clickhouse.Client, logger *zap.Logger) error {
 			return fmt.Errorf("failed to execute statement %d: %w", i+1, err)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -204,11 +204,11 @@ func splitSQLStatements(sql string) []string {
 	var statements []string
 	var current strings.Builder
 	inStatement := false
-	
+
 	lines := strings.Split(sql, "\n")
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
-		
+
 		// Skip empty lines and standalone comments
 		if trimmed == "" {
 			if inStatement {
@@ -216,11 +216,11 @@ func splitSQLStatements(sql string) []string {
 			}
 			continue
 		}
-		
+
 		if strings.HasPrefix(trimmed, "--") && !inStatement {
 			continue
 		}
-		
+
 		// Check if this line starts a statement
 		if !inStatement {
 			if strings.HasPrefix(strings.ToUpper(trimmed), "CREATE") ||
@@ -230,11 +230,11 @@ func splitSQLStatements(sql string) []string {
 				inStatement = true
 			}
 		}
-		
+
 		if inStatement {
 			current.WriteString(line)
 			current.WriteString("\n")
-			
+
 			// Check if statement ends with semicolon
 			if strings.HasSuffix(trimmed, ";") {
 				statements = append(statements, current.String())
@@ -243,12 +243,12 @@ func splitSQLStatements(sql string) []string {
 			}
 		}
 	}
-	
+
 	// Add any remaining statement
 	if current.Len() > 0 {
 		statements = append(statements, current.String())
 	}
-	
+
 	return statements
 }
 
