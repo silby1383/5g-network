@@ -37,16 +37,16 @@ type AuthenticationInfo struct {
 
 // AuthenticationInfoResult represents the authentication response
 type AuthenticationInfoResult struct {
-	AuthType      string           `json:"authType"` // "5G_AKA" or "EAP_AKA_PRIME"
+	AuthType             string       `json:"authType"` // "5G_AKA" or "EAP_AKA_PRIME"
 	AuthenticationVector *AVType5GAKA `json:"authenticationVector,omitempty"`
 }
 
 // AVType5GAKA represents a 5G AKA authentication vector
 type AVType5GAKA struct {
-	RAND         string `json:"rand"`         // Random challenge (hex)
-	AUTN         string `json:"autn"`         // Authentication token (hex)
-	HXRES        string `json:"hxres"`        // Expected response (hex)
-	KAUSF        string `json:"kausf"`        // Key for AUSF (hex)
+	RAND  string `json:"rand"`  // Random challenge (hex)
+	AUTN  string `json:"autn"`  // Authentication token (hex)
+	HXRES string `json:"hxres"` // Expected response (hex)
+	KAUSF string `json:"kausf"` // Key for AUSF (hex)
 }
 
 // GenerateAuthData generates authentication vectors for a UE

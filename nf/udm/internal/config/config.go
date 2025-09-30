@@ -62,7 +62,7 @@ type PLMNConfig struct {
 
 // AuthConfig contains authentication configuration
 type AuthConfig struct {
-	Algorithm string `yaml:"algorithm"` // milenage, tuak
+	Algorithm string `yaml:"algorithm"`  // milenage, tuak
 	KeyLength int    `yaml:"key_length"` // 128 or 256
 }
 

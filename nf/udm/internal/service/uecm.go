@@ -26,21 +26,21 @@ func NewUECMService(logger *zap.Logger) *UECMService {
 
 // UEContext represents UE context information
 type UEContext struct {
-	SUPI              string      `json:"supi"`
-	AMFInstanceID     string      `json:"amfInstanceId,omitempty"`
-	GUAMI             *GUAMI      `json:"guami,omitempty"`
-	PEI               string      `json:"pei,omitempty"` // Permanent Equipment Identifier
-	UDMGroupID        string      `json:"udmGroupId,omitempty"`
-	RoutingIndicator  string      `json:"routingIndicator,omitempty"`
-	RegistrationTime  time.Time   `json:"registrationTime,omitempty"`
-	DeregistrationTime time.Time  `json:"deregistrationTime,omitempty"`
-	PurgeFlag         bool        `json:"purgeFlag,omitempty"`
-	IratChangeAllowed bool        `json:"iratChangeAllowed,omitempty"`
+	SUPI               string    `json:"supi"`
+	AMFInstanceID      string    `json:"amfInstanceId,omitempty"`
+	GUAMI              *GUAMI    `json:"guami,omitempty"`
+	PEI                string    `json:"pei,omitempty"` // Permanent Equipment Identifier
+	UDMGroupID         string    `json:"udmGroupId,omitempty"`
+	RoutingIndicator   string    `json:"routingIndicator,omitempty"`
+	RegistrationTime   time.Time `json:"registrationTime,omitempty"`
+	DeregistrationTime time.Time `json:"deregistrationTime,omitempty"`
+	PurgeFlag          bool      `json:"purgeFlag,omitempty"`
+	IratChangeAllowed  bool      `json:"iratChangeAllowed,omitempty"`
 }
 
 // GUAMI represents Globally Unique AMF Identifier
 type GUAMI struct {
-	PlmnID     PlmnID `json:"plmnId"`
+	PlmnID      PlmnID `json:"plmnId"`
 	AMFRegionID string `json:"amfRegionId"`
 	AMFSetID    string `json:"amfSetId"`
 	AMFPointer  string `json:"amfPointer"`
@@ -54,12 +54,12 @@ type PlmnID struct {
 
 // AMF3GPPAccessRegistration represents AMF registration for 3GPP access
 type AMF3GPPAccessRegistration struct {
-	AMFInstanceID    string    `json:"amfInstanceId"`
-	DeregestrationReason string `json:"deregCallbackUri,omitempty"`
-	GUAMI            *GUAMI    `json:"guami,omitempty"`
-	RATType          string    `json:"ratType"` // NR, EUTRA
-	InitialRegistrationInd bool `json:"initialRegistrationInd,omitempty"`
-	BackupAMFInfo    []interface{} `json:"backupAmfInfo,omitempty"`
+	AMFInstanceID          string        `json:"amfInstanceId"`
+	DeregestrationReason   string        `json:"deregCallbackUri,omitempty"`
+	GUAMI                  *GUAMI        `json:"guami,omitempty"`
+	RATType                string        `json:"ratType"` // NR, EUTRA
+	InitialRegistrationInd bool          `json:"initialRegistrationInd,omitempty"`
+	BackupAMFInfo          []interface{} `json:"backupAmfInfo,omitempty"`
 }
 
 // RegisterAMF3GPPAccess registers AMF context for 3GPP access
@@ -112,7 +112,7 @@ func (s *UECMService) UpdateAMF3GPPAccess(ctx context.Context, supi string, upda
 
 	// Update context fields
 	// In production, parse and apply updates from the map
-	
+
 	s.logger.Debug("AMF context updated",
 		zap.String("supi", supi),
 	)
@@ -137,7 +137,7 @@ func (s *UECMService) DeregisterAMF3GPPAccess(ctx context.Context, supi string) 
 	// Mark as deregistered
 	ueContext.DeregistrationTime = time.Now()
 	ueContext.AMFInstanceID = ""
-	
+
 	// Optionally delete the context
 	// delete(s.contexts, supi)
 

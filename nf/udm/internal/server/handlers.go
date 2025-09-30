@@ -81,7 +81,7 @@ func (s *UDMServer) handleGetAMData(w http.ResponseWriter, r *http.Request) {
 func (s *UDMServer) handleGetSMData(w http.ResponseWriter, r *http.Request) {
 	supi := chi.URLParam(r, "supi")
 	dnn := r.URL.Query().Get("dnn")
-	
+
 	plmnID := &client.PLMNID{
 		MCC: s.config.PLMN.MCC,
 		MNC: s.config.PLMN.MNC,
@@ -127,7 +127,7 @@ func (s *UDMServer) handleSubscribeSDM(w http.ResponseWriter, r *http.Request) {
 	supi := chi.URLParam(r, "supi")
 
 	var subscription struct {
-		CallbackReference string   `json:"callbackReference"`
+		CallbackReference     string   `json:"callbackReference"`
 		MonitoredResourceUris []string `json:"monitoredResourceUris"`
 	}
 
@@ -143,7 +143,7 @@ func (s *UDMServer) handleSubscribeSDM(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.respondJSON(w, http.StatusCreated, map[string]string{
-		"subscriptionId": subscriptionID,
+		"subscriptionId":    subscriptionID,
 		"callbackReference": subscription.CallbackReference,
 	})
 }
@@ -249,10 +249,10 @@ func (s *UDMServer) handleGetUEContext(w http.ResponseWriter, r *http.Request) {
 
 func (s *UDMServer) handleGetStats(w http.ResponseWriter, r *http.Request) {
 	stats := s.uecmService.GetStats()
-	
+
 	s.respondJSON(w, http.StatusOK, map[string]interface{}{
-		"service": "UDM",
-		"version": "1.0.0",
+		"service":    "UDM",
+		"version":    "1.0.0",
 		"uecm_stats": stats,
 	})
 }

@@ -31,17 +31,17 @@ func NewUDRClient(baseURL string, timeout time.Duration, logger *zap.Logger) *UD
 
 // SubscriberData represents subscriber information from UDR
 type SubscriberData struct {
-	SUPI                     string            `json:"supi"`
-	SUPIType                 string            `json:"supiType"`
-	PLMNIDmcc                string            `json:"plmnId.mcc"`
-	PLMNIDmnc                string            `json:"plmnId.mnc"`
-	SubscriberStatus         string            `json:"subscriberStatus,omitempty"`
-	MSISDN                   string            `json:"msisdn,omitempty"`
-	SubscribedUeAmbrUplink   uint64            `json:"subscribedUeAmbr.uplink,string"`
-	SubscribedUeAmbrDownlink uint64            `json:"subscribedUeAmbr.downlink,string"`
-	NSSAI                    []SNSSAI          `json:"nssai,omitempty"`
+	SUPI                     string                 `json:"supi"`
+	SUPIType                 string                 `json:"supiType"`
+	PLMNIDmcc                string                 `json:"plmnId.mcc"`
+	PLMNIDmnc                string                 `json:"plmnId.mnc"`
+	SubscriberStatus         string                 `json:"subscriberStatus,omitempty"`
+	MSISDN                   string                 `json:"msisdn,omitempty"`
+	SubscribedUeAmbrUplink   uint64                 `json:"subscribedUeAmbr.uplink,string"`
+	SubscribedUeAmbrDownlink uint64                 `json:"subscribedUeAmbr.downlink,string"`
+	NSSAI                    []SNSSAI               `json:"nssai,omitempty"`
 	DNNConfigurations        map[string]interface{} `json:"dnnConfigurations,omitempty"`
-	RoamingAllowed           bool              `json:"roamingAllowed"`
+	RoamingAllowed           bool                   `json:"roamingAllowed"`
 }
 
 // SNSSAI represents Single Network Slice Selection Assistance Information
@@ -52,15 +52,15 @@ type SNSSAI struct {
 
 // AuthenticationSubscription represents authentication data from UDR
 type AuthenticationSubscription struct {
-	SUPI                         string `json:"supi"`
-	AuthenticationMethod         string `json:"authenticationMethod"`
-	PermanentKey                 string `json:"permanentKey"`
-	PermanentKeyID               uint8  `json:"permanentKeyId"`
-	EncAlgorithm                 string `json:"encAlgorithm"`
-	EncOPC                       string `json:"encOpc"`
-	EncOP                        string `json:"encOp"`
-	SQN                          uint64 `json:"sqn"`
-	SQNScheme                    string `json:"sqnScheme"`
+	SUPI                          string `json:"supi"`
+	AuthenticationMethod          string `json:"authenticationMethod"`
+	PermanentKey                  string `json:"permanentKey"`
+	PermanentKeyID                uint8  `json:"permanentKeyId"`
+	EncAlgorithm                  string `json:"encAlgorithm"`
+	EncOPC                        string `json:"encOpc"`
+	EncOP                         string `json:"encOp"`
+	SQN                           uint64 `json:"sqn"`
+	SQNScheme                     string `json:"sqnScheme"`
 	AuthenticationManagementField string `json:"authenticationManagementField"`
 }
 

@@ -24,11 +24,11 @@ func NewSDMService(udrClient *client.UDRClient, logger *zap.Logger) *SDMService 
 
 // AccessAndMobilitySubscriptionData represents AM subscription data (TS 29.503)
 type AccessAndMobilitySubscriptionData struct {
-	GPSIS                 []string                `json:"gpsis,omitempty"`
-	SubscribedUeAMBR      *AMBR                   `json:"subscribedUeAmbr,omitempty"`
-	NSSAI                 *NSSAI                  `json:"nssai,omitempty"`
-	RatRestrictions       []string                `json:"ratRestrictions,omitempty"`
-	ForbiddenAreas        []interface{}           `json:"forbiddenAreas,omitempty"`
+	GPSIS                  []string                `json:"gpsis,omitempty"`
+	SubscribedUeAMBR       *AMBR                   `json:"subscribedUeAmbr,omitempty"`
+	NSSAI                  *NSSAI                  `json:"nssai,omitempty"`
+	RatRestrictions        []string                `json:"ratRestrictions,omitempty"`
+	ForbiddenAreas         []interface{}           `json:"forbiddenAreas,omitempty"`
 	ServiceAreaRestriction *ServiceAreaRestriction `json:"serviceAreaRestriction,omitempty"`
 }
 
@@ -52,17 +52,17 @@ type ServiceAreaRestriction struct {
 
 // SessionManagementSubscriptionData represents SM subscription data (TS 29.503)
 type SessionManagementSubscriptionData struct {
-	SingleNSSAI           client.SNSSAI                        `json:"singleNssai"`
-	DnnConfigurations     map[string]*DnnConfiguration         `json:"dnnConfigurations,omitempty"`
+	SingleNSSAI       client.SNSSAI                `json:"singleNssai"`
+	DnnConfigurations map[string]*DnnConfiguration `json:"dnnConfigurations,omitempty"`
 }
 
 // DnnConfiguration represents DNN configuration
 type DnnConfiguration struct {
-	PduSessionTypes       *PduSessionTypes       `json:"pduSessionTypes,omitempty"`
-	SscModes              *SscModes              `json:"sscModes,omitempty"`
-	SessionAMBR           *AMBR                  `json:"sessionAmbr,omitempty"`
-	Var5gQosProfile       *Var5gQosProfile       `json:"5gQosProfile,omitempty"`
-	StaticIPAddress       []string               `json:"staticIpAddress,omitempty"`
+	PduSessionTypes *PduSessionTypes `json:"pduSessionTypes,omitempty"`
+	SscModes        *SscModes        `json:"sscModes,omitempty"`
+	SessionAMBR     *AMBR            `json:"sessionAmbr,omitempty"`
+	Var5gQosProfile *Var5gQosProfile `json:"5gQosProfile,omitempty"`
+	StaticIPAddress []string         `json:"staticIpAddress,omitempty"`
 }
 
 // PduSessionTypes represents PDU session types
@@ -79,9 +79,9 @@ type SscModes struct {
 
 // Var5gQosProfile represents 5G QoS profile
 type Var5gQosProfile struct {
-	Var5qi          int    `json:"5qi"`
-	PriorityLevel   int    `json:"priorityLevel,omitempty"`
-	ARP             *ARP   `json:"arp,omitempty"`
+	Var5qi        int  `json:"5qi"`
+	PriorityLevel int  `json:"priorityLevel,omitempty"`
+	ARP           *ARP `json:"arp,omitempty"`
 }
 
 // ARP represents Allocation and Retention Priority
@@ -227,7 +227,7 @@ func (s *SDMService) SubscribeToDataChanges(ctx context.Context, supi string, ca
 
 	// In production, create subscription in UDR
 	subscriptionID := fmt.Sprintf("sdm-sub-%s", supi)
-	
+
 	return subscriptionID, nil
 }
 

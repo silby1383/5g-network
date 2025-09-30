@@ -51,12 +51,12 @@ type PLMNID struct {
 
 // UDMInfo contains UDM-specific information
 type UDMInfo struct {
-	GroupID               string   `json:"groupId,omitempty"`
-	SupiRanges            []string `json:"supiRanges,omitempty"`
-	GPSIRanges            []string `json:"gpsiRanges,omitempty"`
-	ExternalGroupID       []string `json:"externalGroupIds,omitempty"`
-	RoutingIndicators     []string `json:"routingIndicators,omitempty"`
-	InternalGroupID       []string `json:"internalGroupIds,omitempty"`
+	GroupID           string   `json:"groupId,omitempty"`
+	SupiRanges        []string `json:"supiRanges,omitempty"`
+	GPSIRanges        []string `json:"gpsiRanges,omitempty"`
+	ExternalGroupID   []string `json:"externalGroupIds,omitempty"`
+	RoutingIndicators []string `json:"routingIndicators,omitempty"`
+	InternalGroupID   []string `json:"internalGroupIds,omitempty"`
 }
 
 // Register registers UDM with NRF

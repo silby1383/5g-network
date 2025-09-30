@@ -353,3 +353,21 @@ func (s *UDRServer) handleGetStats(w http.ResponseWriter, r *http.Request) {
 
 	s.respondJSON(w, http.StatusOK, stats)
 }
+
+// handleCreateAuthSubscription handles POST request to create authentication subscription
+func (s *UDRServer) handleCreateAuthSubscription(w http.ResponseWriter, r *http.Request) {
+	var data repository.AuthenticationSubscription
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		s.respondError(w, http.StatusBadRequest, "invalid request body", err)
+		return
+	}
+
+	err := s.repository.CreateAuthenticationSubscription(r.Context(), &data)
+	if err != nil {
+		s.respondError(w, http.StatusConflict, "failed to create auth subscription", err)
+		return
+	}
+
+	s.logger.Info("Authentication subscription created via admin API", zap.String("supi", data.SUPI))
+	s.respondJSON(w, http.StatusCreated, &data)
+}

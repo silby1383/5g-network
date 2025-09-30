@@ -42,7 +42,7 @@ func ComputeOPc(k, op []byte) ([]byte, error) {
 
 	opc := make([]byte, 16)
 	block.Encrypt(opc, op)
-	
+
 	// XOR with OP
 	for i := 0; i < 16; i++ {
 		opc[i] ^= op[i]
@@ -55,7 +55,7 @@ func ComputeOPc(k, op []byte) ([]byte, error) {
 // MAC = f1(K, RAND, SQN, AMF)
 func f1(k, opc, rand, sqn, amf []byte) ([]byte, error) {
 	temp := make([]byte, 16)
-	
+
 	// Concatenate SQN || AMF || SQN || AMF
 	for i := 0; i < 6; i++ {
 		temp[i] = sqn[i]
@@ -87,7 +87,7 @@ func f1(k, opc, rand, sqn, amf []byte) ([]byte, error) {
 	}
 
 	block.Encrypt(temp, in)
-	
+
 	// Rotate and XOR
 	for i := 0; i < 16; i++ {
 		temp[i] ^= opc[i]
@@ -95,7 +95,7 @@ func f1(k, opc, rand, sqn, amf []byte) ([]byte, error) {
 
 	mac := make([]byte, 8)
 	copy(mac, temp[:8])
-	
+
 	return mac, nil
 }
 

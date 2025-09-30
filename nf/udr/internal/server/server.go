@@ -91,6 +91,11 @@ func (s *UDRServer) setupRoutes() {
 		r.Get("/subscribers/{supi}", s.handleGetSubscriber)
 		r.Put("/subscribers/{supi}", s.handlePutSubscriber)
 		r.Delete("/subscribers/{supi}", s.handleDeleteSubscriber)
+		
+		// Authentication subscription management
+		r.Post("/auth-subscriptions", s.handleCreateAuthSubscription)
+		r.Get("/auth-subscriptions/{supi}", s.handleGetAuthSubscription)
+		
 		r.Get("/stats", s.handleGetStats)
 	})
 }

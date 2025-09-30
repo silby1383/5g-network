@@ -16,10 +16,10 @@ import (
 
 // UDMServer represents the UDM HTTP server
 type UDMServer struct {
-	config    *config.Config
-	router    *chi.Mux
-	server    *http.Server
-	logger    *zap.Logger
+	config *config.Config
+	router *chi.Mux
+	server *http.Server
+	logger *zap.Logger
 
 	// Services
 	authService *service.AuthenticationService
@@ -76,11 +76,11 @@ func (s *UDMServer) setupRoutes() {
 	s.router.Route("/nudm-sdm/v1", func(r chi.Router) {
 		// Access and Mobility subscription data
 		r.Get("/supi/{supi}/am-data", s.handleGetAMData)
-		
+
 		// Session Management subscription data
 		r.Get("/supi/{supi}/sm-data", s.handleGetSMData)
 		r.Get("/supi/{supi}/{servingPlmnId}/sm-data", s.handleGetSMDataWithPlmn)
-		
+
 		// Subscriptions
 		r.Post("/supi/{supi}/sdm-subscriptions", s.handleSubscribeSDM)
 		r.Delete("/supi/{supi}/sdm-subscriptions/{subscriptionId}", s.handleUnsubscribeSDM)
@@ -93,7 +93,7 @@ func (s *UDMServer) setupRoutes() {
 		r.Patch("/supi/{supi}/registrations/amf-3gpp-access", s.handleUpdateAMF3GPP)
 		r.Get("/supi/{supi}/registrations/amf-3gpp-access", s.handleGetAMF3GPP)
 		r.Delete("/supi/{supi}/registrations/amf-3gpp-access", s.handleDeregisterAMF3GPP)
-		
+
 		// UE context
 		r.Get("/supi/{supi}/ue-context", s.handleGetUEContext)
 	})
@@ -128,11 +128,11 @@ func (s *UDMServer) Start() error {
 // Stop gracefully stops the HTTP server
 func (s *UDMServer) Stop(ctx context.Context) error {
 	s.logger.Info("Stopping UDM HTTP server")
-	
+
 	if s.server != nil {
 		return s.server.Shutdown(ctx)
 	}
-	
+
 	return nil
 }
 
@@ -177,7 +177,7 @@ func (s *UDMServer) respondError(w http.ResponseWriter, status int, message stri
 		"status": status,
 		"title":  message,
 	}
-	
+
 	if err != nil {
 		response["detail"] = err.Error()
 	}
@@ -203,10 +203,10 @@ func (s *UDMServer) handleReady(w http.ResponseWriter, r *http.Request) {
 
 func (s *UDMServer) handleStatus(w http.ResponseWriter, r *http.Request) {
 	stats := s.uecmService.GetStats()
-	
+
 	s.respondJSON(w, http.StatusOK, map[string]interface{}{
-		"service":  "UDM",
-		"version":  "1.0.0",
-		"stats":    stats,
+		"service": "UDM",
+		"version": "1.0.0",
+		"stats":   stats,
 	})
 }
