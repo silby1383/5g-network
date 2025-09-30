@@ -1,0 +1,52 @@
+# AUSF (Authentication Server Function) Configuration
+
+nf:
+  name: ausf-1
+  instance_id: "00000000-0000-0000-0000-000000000004"
+  description: "Authentication Server Function - Development Instance"
+
+sbi:
+  scheme: http
+  bind_address: 0.0.0.0
+  port: 8083
+  tls:
+    enabled: false
+    cert_file: /etc/ausf/certs/ausf.crt
+    key_file: /etc/ausf/certs/ausf.key
+
+# NRF Configuration
+nrf:
+  url: http://localhost:8080
+  enabled: true
+  heartbeat_interval: 30s
+
+# UDM Configuration (for authentication vectors)
+udm:
+  url: http://localhost:8082
+  timeout: 10s
+
+# PLMN Configuration
+plmn:
+  mcc: "001"
+  mnc: "01"
+
+# Authentication Configuration
+auth:
+  # Supported authentication methods
+  methods:
+    - "5G_AKA"
+    - "EAP_AKA_PRIME"
+  # Default method
+  default_method: "5G_AKA"
+
+observability:
+  metrics:
+    enabled: true
+    port: 9093
+  tracing:
+    enabled: false
+    exporter: otlp
+    endpoint: otel-collector.observability.svc.cluster.local:4317
+  logging:
+    level: info
+    format: json
