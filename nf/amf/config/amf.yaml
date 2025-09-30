@@ -1,0 +1,99 @@
+# AMF (Access and Mobility Management Function) Configuration
+
+nf:
+  name: amf-1
+  instance_id: "00000000-0000-0000-0000-000000000001"
+  description: "Access and Mobility Management Function - Development Instance"
+
+sbi:
+  scheme: http
+  bind_address: 0.0.0.0
+  port: 8084
+  tls:
+    enabled: false
+    cert_file: /etc/amf/certs/amf.crt
+    key_file: /etc/amf/certs/amf.key
+
+# NRF Configuration
+nrf:
+  url: http://localhost:8080
+  enabled: true
+  heartbeat_interval: 30s
+
+# AUSF Configuration (for authentication)
+ausf:
+  url: http://localhost:8083
+  timeout: 30s
+
+# UDM Configuration (for context management)
+udm:
+  url: http://localhost:8082
+  timeout: 10s
+
+# PLMN Configuration
+plmn:
+  mcc: "001"
+  mnc: "01"
+  tac: "000001"  # Tracking Area Code
+
+# AMF Configuration
+amf:
+  # AMF Region ID (8 bits)
+  region_id: 128
+  # AMF Set ID (10 bits)
+  set_id: 1
+  # AMF Pointer (6 bits)
+  pointer: 1
+  # Supported S-NSSAI (Slice/Service Types)
+  supported_snssai:
+    - sst: 1  # eMBB
+      sd: "000001"
+    - sst: 2  # URLLC
+      sd: "000002"
+    - sst: 3  # MIoT
+      sd: "000003"
+  # Supported DNN
+  supported_dnn:
+    - "internet"
+    - "ims"
+    - "mec"
+
+# Security
+security:
+  # Integrity algorithms (ordered by preference)
+  integrity_order:
+    - "NIA2"  # 128-bit Snow3G
+    - "NIA1"  # 128-bit Kasumi
+    - "NIA3"  # 128-bit ZUC
+    - "NIA0"  # Null (no integrity protection)
+  # Ciphering algorithms (ordered by preference)
+  ciphering_order:
+    - "NEA2"  # 128-bit Snow3G
+    - "NEA1"  # 128-bit Kasumi
+    - "NEA3"  # 128-bit ZUC
+    - "NEA0"  # Null (no ciphering)
+
+# Network Slicing
+network_slicing:
+  enabled: true
+
+# Timers (in seconds)
+timers:
+  t3502: 720   # Registration retry timer
+  t3512: 3240  # Periodic registration timer
+  t3522: 6     # Deregistration timer
+  t3550: 6     # NAS message timer
+  t3560: 6     # Authentication timer
+  t3570: 6     # Identity request timer
+
+observability:
+  metrics:
+    enabled: true
+    port: 9084
+  tracing:
+    enabled: false
+    exporter: otlp
+    endpoint: otel-collector.observability.svc.cluster.local:4317
+  logging:
+    level: info
+    format: json
