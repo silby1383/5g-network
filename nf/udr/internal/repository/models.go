@@ -67,7 +67,7 @@ type AuthenticationSubscription struct {
 
 	// Permanent Key
 	PermanentKey   string `json:"permanentKey,omitempty"` // K (hex encoded)
-	PermanentKeyID int    `json:"permanentKeyId,omitempty"`
+	PermanentKeyID uint8  `json:"permanentKeyId,omitempty"`
 
 	// Algorithm
 	EncAlgorithm string `json:"encAlgorithm,omitempty"` // milenage, tuak

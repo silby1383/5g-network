@@ -118,16 +118,8 @@ func (s *UDRServer) handleGetAuthSubscription(w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	// Don't expose sensitive keys in response
-	response := map[string]interface{}{
-		"authenticationMethod":          authSub.AuthenticationMethod,
-		"encAlgorithm":                  authSub.EncAlgorithm,
-		"authenticationManagementField": authSub.AuthenticationManagementField,
-		"sqnScheme":                     authSub.SQNScheme,
-		// Note: permanentKey, encOpc should only be used internally
-	}
-
-	s.respondJSON(w, http.StatusOK, response)
+	// Return full data for UDM (needs keys for MILENAGE)
+	s.respondJSON(w, http.StatusOK, authSub)
 }
 
 // handleUpdateAuthSubscription handles PUT request to update authentication subscription

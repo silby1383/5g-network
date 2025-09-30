@@ -58,8 +58,8 @@ type AuthenticationSubscription struct {
 	PermanentKeyID                uint8  `json:"permanentKeyId"`
 	EncAlgorithm                  string `json:"encAlgorithm"`
 	EncOPC                        string `json:"encOpc"`
-	EncOP                         string `json:"encOp"`
-	SQN                           uint64 `json:"sqn"`
+	EncOP                         string `json:"encTopcKey,omitempty"`
+	SQN                           uint64 `json:"sequenceNumber,string"`
 	SQNScheme                     string `json:"sqnScheme"`
 	AuthenticationManagementField string `json:"authenticationManagementField"`
 }

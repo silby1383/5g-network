@@ -102,9 +102,9 @@ func (s *AuthenticationService) GenerateAuthData(ctx context.Context, authInfo *
 	}
 
 	// Convert SQN to bytes (48 bits)
-	sqn := make([]byte, 6)
-	binary.BigEndian.PutUint64(sqn[0:8], sqnValue)
-	sqn = sqn[2:8] // Take lower 48 bits
+	sqnBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(sqnBytes, sqnValue)
+	sqn := sqnBytes[2:8] // Take lower 48 bits
 
 	// Parse AMF
 	amf, err := crypto.HexToBytes(authSub.AuthenticationManagementField)
