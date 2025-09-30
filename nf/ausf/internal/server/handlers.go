@@ -69,7 +69,7 @@ func (s *AUSFServer) handleConfirm5gAkaAuth(w http.ResponseWriter, r *http.Reque
 // handleGetStats handles GET request for statistics
 func (s *AUSFServer) handleGetStats(w http.ResponseWriter, r *http.Request) {
 	stats := s.authService.GetStats()
-	
+
 	s.respondJSON(w, http.StatusOK, map[string]interface{}{
 		"service":    "AUSF",
 		"version":    "1.0.0",

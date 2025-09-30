@@ -1,0 +1,24 @@
+# Step 1: Initiate authentication
+curl -X POST http://localhost:8083/nausf-auth/v1/ue-authentications \
+  -H "Content-Type: application/json" \
+  -d '{
+    "supiOrSuci": "imsi-001010000000001",
+    "servingNetworkName": "5G:mnc001.mcc001.3gppnetwork.org"
+  }' | jq .
+
+# Response includes authCtxId!
+# {
+#   "authType": "5G_AKA",
+#   "authCtxId": "a1bf9b66c9f2be613f11d2b193077661",
+#   "_5gAuthData": { "rand": "...", "autn": "..." }
+# }
+
+# Step 2: Get HXRES* for testing (simulates UE computing RES*)
+curl -s http://localhost:8083/admin/test/auth-context/{authCtxId} | jq .
+
+# Step 3: Confirm authentication
+curl -X PUT http://localhost:8083/nausf-auth/v1/ue-authentications/{authCtxId}/5g-aka-confirmation \
+  -H "Content-Type: application/json" \
+  -d '{"resStar": "{hxres}"}' | jq .
+
+# Response: AUTHENTICATION_SUCCESS + KSEAF! 🎉
