@@ -3,8 +3,10 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/your-org/5g-network/common/metrics"
 	"github.com/your-org/5g-network/nf/udm/internal/client"
 	"github.com/your-org/5g-network/nf/udm/internal/service"
 	"go.uber.org/zap"
@@ -14,10 +16,12 @@ import (
 
 func (s *UDMServer) handleGenerateAuthData(w http.ResponseWriter, r *http.Request) {
 	supi := chi.URLParam(r, "supi")
+	start := time.Now()
 
 	var authInfo service.AuthenticationInfo
 	if err := json.NewDecoder(r.Body).Decode(&authInfo); err != nil {
 		s.respondError(w, http.StatusBadRequest, "invalid request body", err)
+		metrics.RecordVectorGeneration("failed")
 		return
 	}
 
@@ -26,8 +30,13 @@ func (s *UDMServer) handleGenerateAuthData(w http.ResponseWriter, r *http.Reques
 	result, err := s.authService.GenerateAuthData(r.Context(), &authInfo)
 	if err != nil {
 		s.respondError(w, http.StatusInternalServerError, "failed to generate auth data", err)
+		metrics.RecordVectorGeneration("failed")
 		return
 	}
+
+	// Record successful vector generation
+	metrics.RecordVectorGeneration("success")
+	metrics.RecordVectorGenerationDuration(time.Since(start).Seconds())
 
 	s.logger.Info("Generated authentication data", zap.String("supi", supi))
 	s.respondJSON(w, http.StatusOK, result)
@@ -46,6 +55,9 @@ func (s *UDMServer) handleConfirmAuth(w http.ResponseWriter, r *http.Request) {
 		s.respondError(w, http.StatusInternalServerError, "failed to confirm auth", err)
 		return
 	}
+
+	// Record successful auth confirmation
+	metrics.RecordSDMRequest("auth_confirm", "success")
 
 	s.respondJSON(w, http.StatusCreated, map[string]string{
 		"status": "confirmed",

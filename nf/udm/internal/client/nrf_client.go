@@ -32,15 +32,15 @@ func NewNRFClient(baseURL string, logger *zap.Logger) *NRFClient {
 
 // NFProfile represents an NF profile for registration
 type NFProfile struct {
-	NFInstanceID string   `json:"nfInstanceId"`
-	NFType       string   `json:"nfType"`
-	NFStatus     string   `json:"nfStatus"`
-	PLMNID       PLMNID   `json:"plmnId"`
-	SNSSAI       []SNSSAI `json:"sNssais,omitempty"`
-	IPv4Address  string   `json:"ipv4Addresses,omitempty"`
-	Capacity     int      `json:"capacity,omitempty"`
-	Priority     int      `json:"priority,omitempty"`
-	UDMInfo      *UDMInfo `json:"udmInfo,omitempty"`
+	NFInstanceID  string   `json:"nfInstanceId"`
+	NFType        string   `json:"nfType"`
+	NFStatus      string   `json:"nfStatus"`
+	PLMNID        PLMNID   `json:"plmnId"`
+	SNSSAI        []SNSSAI `json:"sNssais,omitempty"`
+	IPv4Addresses []string `json:"ipv4Addresses,omitempty"` // Fixed: changed from string to []string
+	Capacity      int      `json:"capacity,omitempty"`
+	Priority      int      `json:"priority,omitempty"`
+	UDMInfo       *UDMInfo `json:"udmInfo,omitempty"`
 }
 
 // PLMNID represents PLMN identifier

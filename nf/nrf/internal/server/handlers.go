@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
+	"github.com/your-org/5g-network/common/metrics"
 	"github.com/your-org/5g-network/nf/nrf/internal/repository"
 	"go.uber.org/zap"
 )
@@ -30,8 +31,14 @@ func (s *NRFServer) handleNFRegister(w http.ResponseWriter, r *http.Request) {
 	err := s.repository.Register(r.Context(), &profile)
 	if err != nil {
 		s.respondError(w, http.StatusConflict, "registration failed", err)
+		metrics.RecordNFRegistration("unknown", "failed")
 		return
 	}
+
+	// Record successful registration
+	metrics.RecordNFRegistration(string(profile.NFType), "success")
+	stats, _ := s.repository.GetStats(r.Context())
+	metrics.SetRegisteredNFs(string(profile.NFType), stats.NFsByType[string(profile.NFType)])
 
 	// Return registered profile
 	s.respondJSON(w, http.StatusCreated, &profile)
@@ -78,7 +85,16 @@ func (s *NRFServer) handleNFDeregister(w http.ResponseWriter, r *http.Request) {
 	err := s.repository.Deregister(r.Context(), nfInstanceID)
 	if err != nil {
 		s.respondError(w, http.StatusNotFound, "deregistration failed", err)
+		metrics.RecordNFDeregistration("failed")
 		return
+	}
+
+	// Record successful deregistration
+	metrics.RecordNFDeregistration("unknown") // We don't have the NF type here
+	stats, _ := s.repository.GetStats(r.Context())
+	// Update all NF type counts
+	for nfType, count := range stats.NFsByType {
+		metrics.SetRegisteredNFs(nfType, count)
 	}
 
 	w.WriteHeader(http.StatusNoContent)
@@ -117,16 +133,23 @@ func (s *NRFServer) handleNFList(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// handleHeartbeat handles NF heartbeat (PUT /nf-instances/{nfInstanceId}/heartbeat)
+// handleHeartbeat handles NF heartbeat (PATCH /nf-instances/{nfInstanceId}/heartbeat)
 // TS 29.510, Clause 5.2.2.2.4
 func (s *NRFServer) handleHeartbeat(w http.ResponseWriter, r *http.Request) {
 	nfInstanceID := chi.URLParam(r, "nfInstanceId")
+
+	// Get NF profile for metrics
+	profile, _ := s.repository.Get(r.Context(), nfInstanceID)
 
 	// Update heartbeat
 	err := s.repository.UpdateHeartbeat(r.Context(), nfInstanceID)
 	if err != nil {
 		s.respondError(w, http.StatusNotFound, "heartbeat failed", err)
 		return
+	}
+
+	if profile != nil {
+		metrics.RecordHeartbeat(string(profile.NFType))
 	}
 
 	// Return patch result with updated heartbeat time
@@ -196,8 +219,12 @@ func (s *NRFServer) handleNFDiscover(w http.ResponseWriter, r *http.Request) {
 	profiles, err := s.repository.Discover(r.Context(), query)
 	if err != nil {
 		s.respondError(w, http.StatusInternalServerError, "discovery failed", err)
+		metrics.RecordDiscoveryRequest(string(query.NFType), "failed")
 		return
 	}
+
+	// Record successful discovery
+	metrics.RecordDiscoveryRequest(string(query.NFType), "success")
 
 	// Return results
 	s.respondJSON(w, http.StatusOK, map[string]interface{}{

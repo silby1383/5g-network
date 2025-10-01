@@ -14,6 +14,10 @@ sbi:
     cert_file: /etc/udr/certs/udr.crt
     key_file: /etc/udr/certs/udr.key
 
+plmn:
+  mcc: "001"
+  mnc: "01"
+
 clickhouse:
   addresses:
     - localhost:9000
@@ -30,6 +34,7 @@ clickhouse:
 nrf:
   url: http://localhost:8080
   enabled: true
+  heartbeat_interval: 30s
 
 observability:
   metrics:

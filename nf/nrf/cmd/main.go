@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/your-org/5g-network/common/metrics"
 	"github.com/your-org/5g-network/nf/nrf/internal/config"
 	"github.com/your-org/5g-network/nf/nrf/internal/server"
 	"go.uber.org/zap"
@@ -49,6 +50,20 @@ func main() {
 	// Create context
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	// Initialize metrics server
+	metricsServer := metrics.NewMetricsServer(9090, logger)
+	go func() {
+		logger.Info("Starting metrics server on :9090")
+		if err := metricsServer.Start(); err != nil {
+			logger.Error("Metrics server error", zap.Error(err))
+		}
+	}()
+	defer metricsServer.Stop()
+
+	// Set service up
+	metrics.SetServiceUp(true)
+	defer metrics.SetServiceUp(false)
 
 	// Create and start NRF server
 	nrfServer, err := server.NewNRFServer(cfg, logger)

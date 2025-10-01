@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/your-org/5g-network/common/metrics"
 	"github.com/your-org/5g-network/nf/amf/internal/client"
 	"github.com/your-org/5g-network/nf/amf/internal/config"
 	amfcontext "github.com/your-org/5g-network/nf/amf/internal/context"
@@ -66,12 +67,80 @@ func main() {
 	// Create HTTP server
 	srv := server.NewServer(cfg, registrationService, contextManager, logger)
 
-	// Register with NRF if enabled (simplified - no actual NRF registration for now)
+	// Initialize metrics server
+	metricsServer := metrics.NewMetricsServer(9094, logger)
+	go func() {
+		logger.Info("Starting metrics server on :9094")
+		if err := metricsServer.Start(); err != nil {
+			logger.Error("Metrics server error", zap.Error(err))
+		}
+	}()
+	defer metricsServer.Stop()
+
+	// Set service up
+	metrics.SetServiceUp(true)
+	defer metrics.SetServiceUp(false)
+
+	// Register with NRF if enabled
+	ctx := context.Background()
 	if cfg.NRF.Enabled {
-		logger.Info("NRF registration configured",
-			zap.String("nrf_url", cfg.NRF.URL),
-		)
-		// TODO: Implement NRF registration
+		nrfClient := client.NewNRFClient(cfg.NRF.URL, logger)
+
+		profile := &client.NFProfile{
+			NFInstanceID: cfg.NF.InstanceID,
+			NFType:       "AMF",
+			NFStatus:     "REGISTERED",
+			PLMNID: client.PLMNID{
+				MCC: cfg.PLMN.MCC,
+				MNC: cfg.PLMN.MNC,
+			},
+			IPv4Addresses: []string{fmt.Sprintf("%s:%d", cfg.SBI.BindAddress, cfg.SBI.Port)},
+			Capacity:      100,
+			Priority:      1,
+			AMFInfo: &client.AMFInfo{
+				AMFSetID:    fmt.Sprintf("%d", cfg.AMF.SetID),
+				AMFRegionID: fmt.Sprintf("%d", cfg.AMF.RegionID),
+				GUAMIList: []client.GUAMI{
+					{
+						PLMNID: client.PLMNID{
+							MCC: cfg.PLMN.MCC,
+							MNC: cfg.PLMN.MNC,
+						},
+						AMF: fmt.Sprintf("%04X%02X", cfg.AMF.SetID, cfg.AMF.Pointer),
+					},
+				},
+			},
+		}
+
+		if err := nrfClient.Register(ctx, profile); err != nil {
+			logger.Error("Failed to register with NRF", zap.Error(err))
+		} else {
+			logger.Info("Registered with NRF")
+
+			// Start heartbeat goroutine
+			go func() {
+				ticker := time.NewTicker(cfg.NRF.HeartbeatInterval)
+				defer ticker.Stop()
+
+				for {
+					select {
+					case <-ticker.C:
+						if err := nrfClient.Heartbeat(ctx, cfg.NF.InstanceID); err != nil {
+							logger.Error("Heartbeat failed", zap.Error(err))
+						}
+					case <-ctx.Done():
+						return
+					}
+				}
+			}()
+
+			// Deregister on shutdown
+			defer func() {
+				if err := nrfClient.Deregister(context.Background(), cfg.NF.InstanceID); err != nil {
+					logger.Error("Failed to deregister from NRF", zap.Error(err))
+				}
+			}()
+		}
 	}
 
 	// Start HTTP server in a goroutine

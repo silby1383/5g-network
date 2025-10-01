@@ -10,17 +10,17 @@ import (
 
 // Config represents the AMF configuration
 type Config struct {
-	NF              NFConfig            `yaml:"nf"`
-	SBI             SBIConfig           `yaml:"sbi"`
-	NRF             NRFConfig           `yaml:"nrf"`
-	AUSF            AUSFConfig          `yaml:"ausf"`
-	UDM             UDMConfig           `yaml:"udm"`
-	PLMN            PLMNConfig          `yaml:"plmn"`
-	AMF             AMFConfig           `yaml:"amf"`
-	Security        SecurityConfig      `yaml:"security"`
-	NetworkSlicing  NetworkSlicingConfig `yaml:"network_slicing"`
-	Timers          TimersConfig        `yaml:"timers"`
-	Observability   ObservabilityConfig `yaml:"observability"`
+	NF             NFConfig             `yaml:"nf"`
+	SBI            SBIConfig            `yaml:"sbi"`
+	NRF            NRFConfig            `yaml:"nrf"`
+	AUSF           AUSFConfig           `yaml:"ausf"`
+	UDM            UDMConfig            `yaml:"udm"`
+	PLMN           PLMNConfig           `yaml:"plmn"`
+	AMF            AMFConfig            `yaml:"amf"`
+	Security       SecurityConfig       `yaml:"security"`
+	NetworkSlicing NetworkSlicingConfig `yaml:"network_slicing"`
+	Timers         TimersConfig         `yaml:"timers"`
+	Observability  ObservabilityConfig  `yaml:"observability"`
 }
 
 // NFConfig contains NF instance configuration
@@ -73,11 +73,11 @@ type PLMNConfig struct {
 
 // AMFConfig contains AMF-specific configuration
 type AMFConfig struct {
-	RegionID        uint8     `yaml:"region_id"`
-	SetID           uint16    `yaml:"set_id"`
-	Pointer         uint8     `yaml:"pointer"`
-	SupportedSNSSAI []SNSSAI  `yaml:"supported_snssai"`
-	SupportedDNN    []string  `yaml:"supported_dnn"`
+	RegionID        uint8    `yaml:"region_id"`
+	SetID           uint16   `yaml:"set_id"`
+	Pointer         uint8    `yaml:"pointer"`
+	SupportedSNSSAI []SNSSAI `yaml:"supported_snssai"`
+	SupportedDNN    []string `yaml:"supported_dnn"`
 }
 
 // SNSSAI represents Single Network Slice Selection Assistance Information

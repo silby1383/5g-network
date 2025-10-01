@@ -1,0 +1,81 @@
+# SMF Configuration
+# Session Management Function - 3GPP TS 23.502, TS 29.502
+
+# Service Based Interface
+sbi:
+  scheme: http
+  ipv4: 127.0.0.1
+  port: 8085
+  tls:
+    enabled: false
+    cert: certs/smf.crt
+    key: certs/smf.key
+
+# NRF (Service Discovery)
+nrf:
+  url: http://localhost:8080
+  heartbeat_interval: 30s
+
+# UDM (Subscriber Data)
+udm:
+  url: http://localhost:8082
+
+# PCF (Policy Control)
+pcf:
+  url: http://localhost:8086
+
+# SMF Configuration
+smf:
+  # Identity
+  name: SMF-001
+  set_id: "001"
+  region_id: "01"
+  
+  # PLMN
+  plmn:
+    mcc: "001"
+    mnc: "01"
+  
+  # Network Slices (S-NSSAI)
+  supported_snssai:
+    - sst: 1  # eMBB
+      sd: "000001"
+    - sst: 2  # URLLC
+      sd: "000002"
+  
+  # DNN (Data Network Names)
+  supported_dnn:
+    - dnn: "internet"
+      dns:
+        ipv4: "8.8.8.8"
+        ipv6: "2001:4860:4860::8888"
+    - dnn: "ims"
+      dns:
+        ipv4: "8.8.4.4"
+  
+  # UE IP Pool
+  ue_subnet:
+    ipv4: "10.60.0.0/16"
+    ipv6: "2001:db8::/48"
+  
+  # Default Session Settings
+  default_session_ambr:
+    uplink: "1 Gbps"
+    downlink: "2 Gbps"
+
+# UPF Selection
+upf:
+  # Static UPF configuration (until NRF discovery is implemented)
+  default_upf:
+    node_id: "upf.5gc.mnc001.mcc001.3gppnetwork.org"
+    n4_address: "127.0.0.1:8805"  # PFCP interface
+
+# Observability
+observability:
+  log_level: info
+  otel:
+    enabled: true
+    endpoint: http://localhost:4318
+    service_name: smf
+  ebpf:
+    enabled: false

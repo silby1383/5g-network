@@ -17,10 +17,10 @@ import (
 
 // AMFServer represents the AMF HTTP server
 type AMFServer struct {
-	config             *config.Config
-	router             *chi.Mux
-	server             *http.Server
-	logger             *zap.Logger
+	config *config.Config
+	router *chi.Mux
+	server *http.Server
+	logger *zap.Logger
 
 	// Services
 	registrationService *service.RegistrationService
@@ -69,7 +69,7 @@ func (s *AMFServer) setupRoutes() {
 		// UE Context Management
 		r.Get("/ue-contexts/{ueContextId}", s.handleGetUEContext)
 		r.Post("/ue-contexts/{ueContextId}/release", s.handleReleaseUEContext)
-		
+
 		// N1 Message Transfer
 		r.Post("/ue-contexts/{ueContextId}/n1-n2-messages", s.handleN1N2Transfer)
 	})
@@ -117,11 +117,11 @@ func (s *AMFServer) Start() error {
 // Stop gracefully stops the HTTP server
 func (s *AMFServer) Stop(ctx context.Context) error {
 	s.logger.Info("Stopping AMF HTTP server")
-	
+
 	if s.server != nil {
 		return s.server.Shutdown(ctx)
 	}
-	
+
 	return nil
 }
 
@@ -166,7 +166,7 @@ func (s *AMFServer) respondError(w http.ResponseWriter, status int, message stri
 		"status": status,
 		"title":  message,
 	}
-	
+
 	if err != nil {
 		response["detail"] = err.Error()
 	}
@@ -190,7 +190,7 @@ func (s *AMFServer) handleReady(w http.ResponseWriter, r *http.Request) {
 
 func (s *AMFServer) handleStatus(w http.ResponseWriter, r *http.Request) {
 	stats := s.registrationService.GetRegistrationStats()
-	
+
 	s.respondJSON(w, http.StatusOK, map[string]interface{}{
 		"service": "AMF",
 		"version": "1.0.0",

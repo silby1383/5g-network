@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -62,8 +63,8 @@ func (s *NRFServer) setupRoutes() {
 		r.Get("/nf-instances/{nfInstanceId}", s.handleNFGet)
 		r.Get("/nf-instances", s.handleNFList)
 
-		// Heartbeat (Keep-alive)
-		r.Put("/nf-instances/{nfInstanceId}/heartbeat", s.handleHeartbeat)
+		// Heartbeat (Keep-alive) - 3GPP TS 29.510 specifies PATCH
+		r.Patch("/nf-instances/{nfInstanceId}/heartbeat", s.handleHeartbeat)
 
 		// Subscriptions
 		r.Post("/subscriptions", s.handleSubscribe)
@@ -187,9 +188,11 @@ func (s *NRFServer) respondJSON(w http.ResponseWriter, status int, data interfac
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 
-	// In production, use proper JSON marshaling
-	// For now, simple response
-	fmt.Fprintf(w, "%+v", data)
+	if data != nil {
+		if err := json.NewEncoder(w).Encode(data); err != nil {
+			s.logger.Error("Failed to encode JSON response", zap.Error(err))
+		}
+	}
 }
 
 // respondError writes an error response

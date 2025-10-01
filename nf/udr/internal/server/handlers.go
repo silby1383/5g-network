@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/your-org/5g-network/common/metrics"
 	"github.com/your-org/5g-network/nf/udr/internal/repository"
 	"go.uber.org/zap"
 )
@@ -112,11 +114,17 @@ func (s *UDRServer) handleUpdateSMData(w http.ResponseWriter, r *http.Request) {
 func (s *UDRServer) handleGetAuthSubscription(w http.ResponseWriter, r *http.Request) {
 	supi := chi.URLParam(r, "supi")
 
+	start := time.Now()
 	authSub, err := s.repository.GetAuthenticationSubscription(r.Context(), supi)
 	if err != nil {
 		s.respondError(w, http.StatusNotFound, "authentication subscription not found", err)
+		metrics.RecordAuthSubscriptionQuery("failed")
 		return
 	}
+
+	// Record successful auth subscription query
+	metrics.RecordAuthSubscriptionQuery("success")
+	metrics.RecordDatabaseQuery("get_auth_subscription", time.Since(start).Seconds())
 
 	// Return full data for UDM (needs keys for MILENAGE)
 	s.respondJSON(w, http.StatusOK, authSub)

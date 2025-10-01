@@ -35,22 +35,22 @@ func NewRegistrationService(
 
 // RegistrationRequest represents a UE registration request
 type RegistrationRequest struct {
-	SUPI               string   `json:"supi"`
-	RegistrationType   string   `json:"registrationType"` // "INITIAL", "MOBILITY", "PERIODIC"
-	FollowOnRequest    bool     `json:"followOnRequest"`
-	RequestedNSSAI     []amfcontext.SNSSAI `json:"requestedNssai,omitempty"`
+	SUPI             string              `json:"supi"`
+	RegistrationType string              `json:"registrationType"` // "INITIAL", "MOBILITY", "PERIODIC"
+	FollowOnRequest  bool                `json:"followOnRequest"`
+	RequestedNSSAI   []amfcontext.SNSSAI `json:"requestedNssai,omitempty"`
 }
 
 // RegistrationResponse represents a registration response
 type RegistrationResponse struct {
-	Result          string   `json:"result"` // "SUCCESS", "FAILURE"
-	SUPI            string   `json:"supi"`
-	GUAMI           string   `json:"guami"`
-	AllowedNSSAI    []amfcontext.SNSSAI `json:"allowedNssai,omitempty"`
-	ConfiguredNSSAI []amfcontext.SNSSAI `json:"configuredNssai,omitempty"`
+	Result          string                          `json:"result"` // "SUCCESS", "FAILURE"
+	SUPI            string                          `json:"supi"`
+	GUAMI           string                          `json:"guami"`
+	AllowedNSSAI    []amfcontext.SNSSAI             `json:"allowedNssai,omitempty"`
+	ConfiguredNSSAI []amfcontext.SNSSAI             `json:"configuredNssai,omitempty"`
 	TAI             amfcontext.TrackingAreaIdentity `json:"tai"`
-	T3512           int      `json:"t3512"` // Periodic registration timer
-	Reason          string   `json:"reason,omitempty"`
+	T3512           int                             `json:"t3512"` // Periodic registration timer
+	Reason          string                          `json:"reason,omitempty"`
 }
 
 // AuthenticationRequest represents an authentication request
@@ -60,10 +60,10 @@ type AuthenticationRequest struct {
 
 // AuthenticationResponse represents an authentication response
 type AuthenticationResponse struct {
-	AuthType      string `json:"authType"`
-	AuthCtxID     string `json:"authCtxId"`
-	RAND          string `json:"rand"`
-	AUTN          string `json:"autn"`
+	AuthType  string `json:"authType"`
+	AuthCtxID string `json:"authCtxId"`
+	RAND      string `json:"rand"`
+	AUTN      string `json:"autn"`
 }
 
 // AuthenticationConfirmRequest represents an authentication confirmation
@@ -268,8 +268,8 @@ func (s *RegistrationService) DeregisterUE(ctx context.Context, supi string) err
 // GetRegistrationStats returns registration statistics
 func (s *RegistrationService) GetRegistrationStats() map[string]interface{} {
 	return map[string]interface{}{
-		"total_contexts":   len(s.contextManager.GetAllContexts()),
-		"registered_ues":   s.contextManager.GetRegisteredCount(),
-		"connected_ues":    s.contextManager.GetConnectedCount(),
+		"total_contexts": len(s.contextManager.GetAllContexts()),
+		"registered_ues": s.contextManager.GetRegisteredCount(),
+		"connected_ues":  s.contextManager.GetConnectedCount(),
 	}
 }

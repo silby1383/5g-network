@@ -3,8 +3,10 @@ package server
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/your-org/5g-network/common/metrics"
 	"github.com/your-org/5g-network/nf/ausf/internal/service"
 	"go.uber.org/zap"
 )
@@ -12,9 +14,12 @@ import (
 // handleUEAuthenticationRequest handles POST request to initiate UE authentication
 // TS 29.509, Clause 5.2.2.2.2
 func (s *AUSFServer) handleUEAuthenticationRequest(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
 	var req service.UEAuthenticationRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		s.respondError(w, http.StatusBadRequest, "invalid request body", err)
+		metrics.RecordAuthenticationAttempt("5G-AKA", "failed")
 		return
 	}
 
@@ -26,8 +31,14 @@ func (s *AUSFServer) handleUEAuthenticationRequest(w http.ResponseWriter, r *htt
 	response, err := s.authService.UEAuthenticationCtx(r.Context(), &req)
 	if err != nil {
 		s.respondError(w, http.StatusInternalServerError, "failed to initiate authentication", err)
+		metrics.RecordAuthenticationAttempt("5G-AKA", "failed")
 		return
 	}
+
+	// Record successful authentication attempt
+	metrics.RecordAuthenticationAttempt("5G-AKA", "success")
+	metrics.RecordAKAVectorGeneration("success")
+	metrics.RecordAuthenticationDuration("5G-AKA", time.Since(start).Seconds())
 
 	s.logger.Info("UE authentication initiated",
 		zap.String("supi", req.SUPI),

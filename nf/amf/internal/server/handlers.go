@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/your-org/5g-network/common/metrics"
 	"github.com/your-org/5g-network/nf/amf/internal/service"
 	"go.uber.org/zap"
 )
@@ -24,8 +25,12 @@ func (s *AMFServer) handleAuthenticationRequest(w http.ResponseWriter, r *http.R
 	response, err := s.registrationService.InitiateAuthentication(r.Context(), &req)
 	if err != nil {
 		s.respondError(w, http.StatusInternalServerError, "failed to initiate authentication", err)
+		metrics.RecordAuthenticationRequest("failed")
 		return
 	}
+
+	// Record successful authentication request
+	metrics.RecordAuthenticationRequest("success")
 
 	s.logger.Info("Authentication initiated",
 		zap.String("supi", req.SUPI),
@@ -80,10 +85,12 @@ func (s *AMFServer) handleRegistrationRequest(w http.ResponseWriter, r *http.Req
 	response, err := s.registrationService.RegisterUE(r.Context(), &req)
 	if err != nil {
 		s.respondError(w, http.StatusInternalServerError, "failed to register UE", err)
+		metrics.RecordRegistrationAttempt("failed")
 		return
 	}
 
 	if response.Result != "SUCCESS" {
+		metrics.RecordRegistrationAttempt("failed")
 		s.logger.Warn("Registration failed",
 			zap.String("supi", req.SUPI),
 			zap.String("reason", response.Reason),
@@ -91,6 +98,11 @@ func (s *AMFServer) handleRegistrationRequest(w http.ResponseWriter, r *http.Req
 		s.respondJSON(w, http.StatusForbidden, response)
 		return
 	}
+
+	// Record successful registration
+	metrics.RecordRegistrationAttempt("success")
+	metrics.SetRegisteredUEs(1)     // Increment by 1
+	metrics.SetActiveConnections(1) // Increment by 1
 
 	s.logger.Info("UE registered successfully",
 		zap.String("supi", req.SUPI),
@@ -113,6 +125,10 @@ func (s *AMFServer) handleDeregistration(w http.ResponseWriter, r *http.Request)
 		s.respondError(w, http.StatusNotFound, "failed to deregister UE", err)
 		return
 	}
+
+	// Decrement counters on deregistration
+	metrics.SetRegisteredUEs(-1)     // Decrement by 1
+	metrics.SetActiveConnections(-1) // Decrement by 1
 
 	s.logger.Info("UE deregistered",
 		zap.String("supi", supi),
@@ -199,12 +215,12 @@ func (s *AMFServer) handleListUEContexts(w http.ResponseWriter, r *http.Request)
 // handleGetStats handles GET request for statistics
 func (s *AMFServer) handleGetStats(w http.ResponseWriter, r *http.Request) {
 	stats := s.registrationService.GetRegistrationStats()
-	
+
 	s.respondJSON(w, http.StatusOK, map[string]interface{}{
-		"service":          "AMF",
-		"version":          "1.0.0",
-		"guami":            s.config.GetGUAMI(),
-		"plmn":             map[string]string{
+		"service": "AMF",
+		"version": "1.0.0",
+		"guami":   s.config.GetGUAMI(),
+		"plmn": map[string]string{
 			"mcc": s.config.PLMN.MCC,
 			"mnc": s.config.PLMN.MNC,
 			"tac": s.config.PLMN.TAC,

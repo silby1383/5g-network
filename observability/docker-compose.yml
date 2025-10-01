@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  # VictoriaMetrics - Time-series database for metrics
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:latest
+    container_name: 5g-victoriametrics
+    ports:
+      - "8428:8428"
+    volumes:
+      - vm-data:/victoria-metrics-data
+    command:
+      - "--storageDataPath=/victoria-metrics-data"
+      - "--httpListenAddr=:8428"
+      - "--retentionPeriod=12"
+    restart: unless-stopped
+    networks:
+      - observability
+
+  # Loki - Log aggregation system
+  loki:
+    image: grafana/loki:latest
+    container_name: 5g-loki
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    restart: unless-stopped
+    networks:
+      - observability
+
+  # Promtail - Log shipper for Loki
+  promtail:
+    image: grafana/promtail:latest
+    container_name: 5g-promtail
+    volumes:
+      - ./loki/promtail-config.yml:/etc/promtail/config.yml
+      - /tmp:/tmp:ro
+      - /var/log:/var/log:ro
+    command: -config.file=/etc/promtail/config.yml
+    restart: unless-stopped
+    networks:
+      - observability
+    depends_on:
+      - loki
+
+  # Grafana - Visualization platform
+  grafana:
+    image: grafana/grafana:latest
+    container_name: 5g-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    restart: unless-stopped
+    networks:
+      - observability
+    depends_on:
+      - victoriametrics
+      - loki
+
+  # vmagent - Metrics scraper (Prometheus compatible)
+  vmagent:
+    image: victoriametrics/vmagent:latest
+    container_name: 5g-vmagent
+    ports:
+      - "8429:8429"
+    volumes:
+      - ./victoriametrics/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--promscrape.config=/etc/prometheus/prometheus.yml"
+      - "--remoteWrite.url=http://victoriametrics:8428/api/v1/write"
+    restart: unless-stopped
+    networks:
+      - observability
+    depends_on:
+      - victoriametrics
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Alertmanager - Alert routing
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: 5g-alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager/config.yml:/etc/alertmanager/config.yml
+    command:
+      - "--config.file=/etc/alertmanager/config.yml"
+    restart: unless-stopped
+    networks:
+      - observability
+
+volumes:
+  vm-data:
+  loki-data:
+  grafana-data:
+
+networks:
+  observability:
+    driver: bridge
+

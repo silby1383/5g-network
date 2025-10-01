@@ -1,0 +1,75 @@
+# UPF (User Plane Function) Configuration
+
+nf:
+  name: upf-1
+  instance_id: "00000000-0000-0000-0000-000000000006"
+  description: "User Plane Function - Development Instance"
+
+# N4 Interface (PFCP - SMF-UPF)
+pfcp:
+  bind_address: 0.0.0.0
+  port: 8805
+  node_id: "upf-1.5gc.mnc01.mcc001.3gppnetwork.org"
+
+# N3 Interface (GTP-U - gNB-UPF)
+n3:
+  bind_address: 0.0.0.0
+  port: 2152
+  local_address: 127.0.0.1
+
+# N6 Interface (Data Network)
+n6:
+  interface_name: lo  # Loopback for development
+  subnet: 10.60.0.0/16
+  gateway: 10.60.0.1
+  dns_primary: 8.8.8.8
+  dns_secondary: 8.8.4.4
+
+# N9 Interface (UPF-UPF)
+n9:
+  enabled: false
+  bind_address: 0.0.0.0
+  port: 2153
+
+plmn:
+  mcc: "001"
+  mnc: "01"
+
+# Data Network Names
+dnn:
+  - name: internet
+    cidr: 10.60.0.0/16
+    gateway: 10.60.0.1
+  - name: ims
+    cidr: 10.61.0.0/16
+    gateway: 10.61.0.1
+
+# QoS Configuration
+qos:
+  max_uplink_bitrate: 1000000000    # 1 Gbps
+  max_downlink_bitrate: 2000000000  # 2 Gbps
+  default_qfi: 9                     # Best effort
+
+# Forwarding Rules
+forwarding:
+  max_sessions: 10000
+  session_idle_timeout: 300s
+  buffer_size: 65535
+
+nrf:
+  url: http://localhost:8080
+  enabled: true
+  heartbeat_interval: 30s
+
+observability:
+  metrics:
+    enabled: true
+    port: 9096
+  tracing:
+    enabled: false
+    exporter: otlp
+    endpoint: otel-collector.observability.svc.cluster.local:4317
+  logging:
+    level: info
+    format: json
+

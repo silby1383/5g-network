@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/your-org/5g-network/common/metrics"
 	"github.com/your-org/5g-network/nf/udm/internal/client"
 	"github.com/your-org/5g-network/nf/udm/internal/config"
 	"github.com/your-org/5g-network/nf/udm/internal/server"
@@ -67,6 +68,20 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// Initialize metrics server
+	metricsServer := metrics.NewMetricsServer(9092, logger)
+	go func() {
+		logger.Info("Starting metrics server on :9092")
+		if err := metricsServer.Start(); err != nil {
+			logger.Error("Metrics server error", zap.Error(err))
+		}
+	}()
+	defer metricsServer.Stop()
+
+	// Set service up
+	metrics.SetServiceUp(true)
+	defer metrics.SetServiceUp(false)
+
 	// Register with NRF if enabled
 	if cfg.NRF.Enabled {
 		nrfClient := client.NewNRFClient(cfg.NRF.URL, logger)
@@ -79,9 +94,9 @@ func main() {
 				MCC: cfg.PLMN.MCC,
 				MNC: cfg.PLMN.MNC,
 			},
-			IPv4Address: fmt.Sprintf("%s:%d", cfg.SBI.BindAddress, cfg.SBI.Port),
-			Capacity:    100,
-			Priority:    1,
+			IPv4Addresses: []string{fmt.Sprintf("%s:%d", cfg.SBI.BindAddress, cfg.SBI.Port)},
+			Capacity:      100,
+			Priority:      1,
 			UDMInfo: &client.UDMInfo{
 				GroupID: "udm-group-1",
 			},

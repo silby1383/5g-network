@@ -1,0 +1,70 @@
+global:
+  scrape_interval: 15s
+  external_labels:
+    cluster: '5g-network'
+    environment: 'development'
+
+scrape_configs:
+  # NRF Metrics
+  - job_name: 'nrf'
+    static_configs:
+      - targets: ['192.168.1.15:9090']
+        labels:
+          nf_type: 'NRF'
+          nf_instance: 'nrf-1'
+
+  # UDR Metrics
+  - job_name: 'udr'
+    static_configs:
+      - targets: ['192.168.1.15:9091']
+        labels:
+          nf_type: 'UDR'
+          nf_instance: 'udr-1'
+
+  # UDM Metrics
+  - job_name: 'udm'
+    static_configs:
+      - targets: ['192.168.1.15:9092']
+        labels:
+          nf_type: 'UDM'
+          nf_instance: 'udm-1'
+
+  # AUSF Metrics
+  - job_name: 'ausf'
+    static_configs:
+      - targets: ['192.168.1.15:9097']
+        labels:
+          nf_type: 'AUSF'
+          nf_instance: 'ausf-1'
+
+  # AMF Metrics
+  - job_name: 'amf'
+    static_configs:
+      - targets: ['192.168.1.15:9094']
+        labels:
+          nf_type: 'AMF'
+          nf_instance: 'amf-1'
+
+  # SMF Metrics
+  - job_name: 'smf'
+    static_configs:
+      - targets: ['192.168.1.15:9095']
+        labels:
+          nf_type: 'SMF'
+          nf_instance: 'smf-1'
+
+  # UPF Metrics
+  - job_name: 'upf'
+    static_configs:
+      - targets: ['192.168.1.15:9098']
+        labels:
+          nf_type: 'UPF'
+          nf_instance: 'upf-1'
+
+  # ClickHouse Metrics
+  - job_name: 'clickhouse'
+    static_configs:
+      - targets: ['localhost:9363']
+        labels:
+          service: 'clickhouse'
+

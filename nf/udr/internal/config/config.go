@@ -13,6 +13,7 @@ import (
 type Config struct {
 	NF            NFConfig            `yaml:"nf"`
 	SBI           SBIConfig           `yaml:"sbi"`
+	PLMN          PLMNConfig          `yaml:"plmn"`
 	ClickHouse    clickhouse.Config   `yaml:"clickhouse"`
 	NRF           NRFConfig           `yaml:"nrf"`
 	Observability ObservabilityConfig `yaml:"observability"`
@@ -40,10 +41,17 @@ type TLSConfig struct {
 	KeyFile  string `yaml:"key_file"`
 }
 
+// PLMNConfig holds PLMN configuration
+type PLMNConfig struct {
+	MCC string `yaml:"mcc"`
+	MNC string `yaml:"mnc"`
+}
+
 // NRFConfig holds NRF client configuration
 type NRFConfig struct {
-	URL     string `yaml:"url"`
-	Enabled bool   `yaml:"enabled"`
+	URL               string        `yaml:"url"`
+	Enabled           bool          `yaml:"enabled"`
+	HeartbeatInterval time.Duration `yaml:"heartbeat_interval"`
 }
 
 // ObservabilityConfig holds observability configuration

@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/your-org/5g-network/common/metrics"
 	"github.com/your-org/5g-network/nf/ausf/internal/client"
 	"github.com/your-org/5g-network/nf/ausf/internal/config"
 	"github.com/your-org/5g-network/nf/ausf/internal/server"
@@ -73,6 +74,20 @@ func main() {
 	// Create context
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
+
+	// Initialize metrics server (AUSF uses port 9097 to avoid conflict with Alertmanager on 9093)
+	metricsServer := metrics.NewMetricsServer(9097, logger)
+	go func() {
+		logger.Info("Starting metrics server on :9097")
+		if err := metricsServer.Start(); err != nil {
+			logger.Error("Metrics server error", zap.Error(err))
+		}
+	}()
+	defer metricsServer.Stop()
+
+	// Set service up
+	metrics.SetServiceUp(true)
+	defer metrics.SetServiceUp(false)
 
 	// Register with NRF if enabled
 	if cfg.NRF.Enabled {

@@ -19,19 +19,19 @@ type UEContext struct {
 
 	// Location
 	TAI TrackingAreaIdentity
-	
+
 	// Security
 	SecurityContext *SecurityContext
 
 	// Network Slicing
-	AllowedNSSAI []SNSSAI
+	AllowedNSSAI    []SNSSAI
 	ConfiguredNSSAI []SNSSAI
 
 	// AMF Context
-	GUAMI          string // Globally Unique AMF Identifier
-	AMFRegionID    uint8
-	AMFSetID       uint16
-	AMFPointer     uint8
+	GUAMI       string // Globally Unique AMF Identifier
+	AMFRegionID uint8
+	AMFSetID    uint16
+	AMFPointer  uint8
 
 	// Timestamps
 	CreatedAt      time.Time
@@ -74,15 +74,15 @@ type PLMNID struct {
 
 // SNSSAI represents Single Network Slice Selection Assistance Information
 type SNSSAI struct {
-	SST uint8  `json:"sst"` // Slice/Service Type
-	SD  string `json:"sd,omitempty"`  // Slice Differentiator
+	SST uint8  `json:"sst"`          // Slice/Service Type
+	SD  string `json:"sd,omitempty"` // Slice Differentiator
 }
 
 // SecurityContext represents UE security context
 type SecurityContext struct {
 	// Keys
-	KAMF   string // AMF key
-	KSEAF  string // SEAF key (from AUSF)
+	KAMF    string // AMF key
+	KSEAF   string // SEAF key (from AUSF)
 	KNASenc string // NAS encryption key
 	KNASint string // NAS integrity key
 
@@ -101,13 +101,13 @@ type SecurityContext struct {
 
 // PDUSessionInfo represents PDU session information
 type PDUSessionInfo struct {
-	SessionID   uint8
-	DNN         string
-	SNSSAI      SNSSAI
-	SessionAMBR SessionAMBR
+	SessionID     uint8
+	DNN           string
+	SNSSAI        SNSSAI
+	SessionAMBR   SessionAMBR
 	SMFInstanceID string
-	State       PDUSessionState
-	CreatedAt   time.Time
+	State         PDUSessionState
+	CreatedAt     time.Time
 }
 
 // SessionAMBR represents Session Aggregate Maximum Bit Rate
@@ -140,7 +140,7 @@ func NewUEContext(supi string) *UEContext {
 func (ue *UEContext) UpdateRegistrationState(state RegistrationState) {
 	ue.mu.Lock()
 	defer ue.mu.Unlock()
-	
+
 	ue.RegistrationState = state
 	if state == RegistrationStateRegistered {
 		ue.RegisteredAt = time.Now()
@@ -152,7 +152,7 @@ func (ue *UEContext) UpdateRegistrationState(state RegistrationState) {
 func (ue *UEContext) UpdateConnectionState(state ConnectionState) {
 	ue.mu.Lock()
 	defer ue.mu.Unlock()
-	
+
 	ue.ConnectionState = state
 	ue.LastActivityAt = time.Now()
 }
@@ -161,7 +161,7 @@ func (ue *UEContext) UpdateConnectionState(state ConnectionState) {
 func (ue *UEContext) SetSecurityContext(sc *SecurityContext) {
 	ue.mu.Lock()
 	defer ue.mu.Unlock()
-	
+
 	ue.SecurityContext = sc
 	ue.LastActivityAt = time.Now()
 }
@@ -170,7 +170,7 @@ func (ue *UEContext) SetSecurityContext(sc *SecurityContext) {
 func (ue *UEContext) AddPDUSession(session *PDUSessionInfo) {
 	ue.mu.Lock()
 	defer ue.mu.Unlock()
-	
+
 	ue.PDUSessions[session.SessionID] = session
 	ue.LastActivityAt = time.Now()
 }
@@ -179,7 +179,7 @@ func (ue *UEContext) AddPDUSession(session *PDUSessionInfo) {
 func (ue *UEContext) RemovePDUSession(sessionID uint8) {
 	ue.mu.Lock()
 	defer ue.mu.Unlock()
-	
+
 	delete(ue.PDUSessions, sessionID)
 	ue.LastActivityAt = time.Now()
 }
@@ -188,7 +188,7 @@ func (ue *UEContext) RemovePDUSession(sessionID uint8) {
 func (ue *UEContext) GetPDUSession(sessionID uint8) (*PDUSessionInfo, bool) {
 	ue.mu.RLock()
 	defer ue.mu.RUnlock()
-	
+
 	session, exists := ue.PDUSessions[sessionID]
 	return session, exists
 }
@@ -197,7 +197,7 @@ func (ue *UEContext) GetPDUSession(sessionID uint8) (*PDUSessionInfo, bool) {
 func (ue *UEContext) IsRegistered() bool {
 	ue.mu.RLock()
 	defer ue.mu.RUnlock()
-	
+
 	return ue.RegistrationState == RegistrationStateRegistered
 }
 
@@ -205,7 +205,7 @@ func (ue *UEContext) IsRegistered() bool {
 func (ue *UEContext) IsConnected() bool {
 	ue.mu.RLock()
 	defer ue.mu.RUnlock()
-	
+
 	return ue.ConnectionState == ConnectionStateConnected
 }
 
@@ -226,7 +226,7 @@ func NewUEContextManager() *UEContextManager {
 func (m *UEContextManager) CreateContext(supi string) *UEContext {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	ctx := NewUEContext(supi)
 	m.contexts[supi] = ctx
 	return ctx
@@ -236,7 +236,7 @@ func (m *UEContextManager) CreateContext(supi string) *UEContext {
 func (m *UEContextManager) GetContext(supi string) (*UEContext, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	ctx, exists := m.contexts[supi]
 	return ctx, exists
 }
@@ -247,7 +247,7 @@ func (m *UEContextManager) GetOrCreateContext(supi string) *UEContext {
 	if ctx, exists := m.GetContext(supi); exists {
 		return ctx
 	}
-	
+
 	// Create new
 	return m.CreateContext(supi)
 }
@@ -256,7 +256,7 @@ func (m *UEContextManager) GetOrCreateContext(supi string) *UEContext {
 func (m *UEContextManager) RemoveContext(supi string) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	
+
 	delete(m.contexts, supi)
 }
 
@@ -264,7 +264,7 @@ func (m *UEContextManager) RemoveContext(supi string) {
 func (m *UEContextManager) GetAllContexts() []*UEContext {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	contexts := make([]*UEContext, 0, len(m.contexts))
 	for _, ctx := range m.contexts {
 		contexts = append(contexts, ctx)
@@ -276,7 +276,7 @@ func (m *UEContextManager) GetAllContexts() []*UEContext {
 func (m *UEContextManager) GetRegisteredCount() int {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	count := 0
 	for _, ctx := range m.contexts {
 		if ctx.IsRegistered() {
@@ -290,7 +290,7 @@ func (m *UEContextManager) GetRegisteredCount() int {
 func (m *UEContextManager) GetConnectedCount() int {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	
+
 	count := 0
 	for _, ctx := range m.contexts {
 		if ctx.IsConnected() {

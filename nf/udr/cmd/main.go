@@ -10,7 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/your-org/5g-network/common/metrics"
 	"github.com/your-org/5g-network/nf/udr/internal/clickhouse"
+	"github.com/your-org/5g-network/nf/udr/internal/client"
 	"github.com/your-org/5g-network/nf/udr/internal/config"
 	"github.com/your-org/5g-network/nf/udr/internal/repository"
 	"github.com/your-org/5g-network/nf/udr/internal/server"
@@ -77,13 +79,69 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// Initialize metrics server
+	metricsServer := metrics.NewMetricsServer(9091, logger)
+	go func() {
+		logger.Info("Starting metrics server on :9091")
+		if err := metricsServer.Start(); err != nil {
+			logger.Error("Metrics server error", zap.Error(err))
+		}
+	}()
+	defer metricsServer.Stop()
+
+	// Set service up
+	metrics.SetServiceUp(true)
+	defer metrics.SetServiceUp(false)
+
 	// Register with NRF if enabled
 	if cfg.NRF.Enabled {
-		logger.Info("NRF registration enabled",
-			zap.String("nrf_url", cfg.NRF.URL),
-		)
-		// TODO: Implement NRF registration
-		// go registerWithNRF(cfg, logger)
+		nrfClient := client.NewNRFClient(cfg.NRF.URL, logger)
+
+		profile := &client.NFProfile{
+			NFInstanceID: cfg.NF.InstanceID,
+			NFType:       "UDR",
+			NFStatus:     "REGISTERED",
+			PLMNID: client.PLMNID{
+				MCC: cfg.PLMN.MCC,
+				MNC: cfg.PLMN.MNC,
+			},
+			IPv4Addresses: []string{fmt.Sprintf("%s:%d", cfg.SBI.BindAddress, cfg.SBI.Port)},
+			Capacity:      100,
+			Priority:      1,
+			UDRInfo: &client.UDRInfo{
+				GroupID: "udr-group-1",
+			},
+		}
+
+		if err := nrfClient.Register(ctx, profile); err != nil {
+			logger.Error("Failed to register with NRF", zap.Error(err))
+		} else {
+			logger.Info("Registered with NRF")
+
+			// Start heartbeat goroutine
+			go func() {
+				ticker := time.NewTicker(cfg.NRF.HeartbeatInterval)
+				defer ticker.Stop()
+
+				for {
+					select {
+					case <-ticker.C:
+						if err := nrfClient.Heartbeat(ctx, cfg.NF.InstanceID); err != nil {
+							logger.Error("Heartbeat failed", zap.Error(err))
+						}
+					case <-ctx.Done():
+						return
+					}
+				}
+			}()
+
+			// Deregister on shutdown
+			defer func() {
+				if err := nrfClient.Deregister(context.Background(), cfg.NF.InstanceID); err != nil {
+					logger.Error("Failed to deregister from NRF", zap.Error(err))
+				}
+			}()
+		}
 	}
 
 	// Create and start UDR server
